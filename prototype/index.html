@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kaizen Blue Ocean</title>
+<meta name="description" content="Мир начинается дома. Гипотеза: люди разрушают себя, друг друга и планету, когда им не хватает любви и достатка.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Onest:wght@400;500;600&family=Unbounded:wght@600;700&display=swap">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="bar">
+  <a class="brand" href="#top">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10.5" fill="none" stroke="#e7efe9" stroke-opacity=".45"/><path d="M12 1.5a10.5 10.5 0 0 0 0 21z" fill="#5cc8ff"/><circle cx="16.4" cy="9.2" r="2.1" fill="#ffc46b"/></svg>
+    Kaizen Blue Ocean
+  </a>
+  <nav class="nav" aria-label="Разделы">
+    <a href="#blue-ocean" data-i18n="nav_money">Деньги</a>
+    <a href="#kaizen" data-i18n="nav_love">Любовь</a>
+    <a href="#lagom" data-i18n="nav_lagom">Лагом</a>
+    <a href="https://docs.google.com/document/d/1nue2fJzhALl1OZwp51XvarfwrpdZXQdk/edit?usp=sharing&amp;ouid=111378171419796986829&amp;rtpof=true&amp;sd=true" target="_blank" rel="noopener" data-i18n="nav_book">Книга</a>
+  </nav>
+  <div class="lang" role="group" aria-label="Язык / Language">
+    <button type="button" data-lang="ru" aria-pressed="true">RU</button>
+    <button type="button" data-lang="en" aria-pressed="false">EN</button>
+  </div>
+</header>
+
+<main>
+  <section class="hero" id="top">
+    <canvas class="hero__canvas" id="planet" aria-hidden="true"></canvas>
+    <div class="hero__slot" id="planet-slot" aria-hidden="true"></div>
+    <p class="nogl" data-i18n="nogl">Здесь вращается Земля. Ваш браузер не показывает 3D-графику, но переключатели и подписи работают.</p>
+
+    <div class="hero__copy">
+      <p class="eyebrow" data-i18n="eyebrow">Мир начинается дома</p>
+      <h1 data-i18n="h1">Чего не хватает миру?</h1>
+      <p class="lead" data-i18n="lead">Наша гипотеза: люди разрушают себя, друг друга и планету, когда им не хватает любви и достатка. Включите — и посмотрите, что изменится.</p>
+
+      <div class="switches" role="group" aria-label="Два направления" data-i18n-label="switches">
+        <div class="switch-cell switch-cell--kaizen">
+          <button type="button" class="switch switch--kaizen" id="sw-kaizen" aria-pressed="false">
+            <span class="switch__name">Kaizen</span>
+            <span class="switch__verb" data-i18n="kaizen_verb">Улучшать любовь</span>
+            <span class="switch__track" aria-hidden="true"><span class="switch__knob"></span></span>
+          </button>
+          <a class="switch__more" id="more-kaizen" href="#kaizen" data-i18n="more" hidden>Как это работает →</a>
+        </div>
+        <div class="switch-cell switch-cell--blue">
+          <button type="button" class="switch switch--blue" id="sw-blue" aria-pressed="false">
+            <span class="switch__name">Blue Ocean</span>
+            <span class="switch__verb" data-i18n="bo_verb">Создавать достаток</span>
+            <span class="switch__track" aria-hidden="true"><span class="switch__knob"></span></span>
+          </button>
+          <a class="switch__more" id="more-blue" href="#blue-ocean" data-i18n="more" hidden>Как это работает →</a>
+        </div>
+      </div>
+
+      <div class="state" id="state" aria-live="polite" data-state="s00">
+        <p class="state__label" data-i18n="state_label">Состояние планеты</p>
+        <p class="state__title">Дефицит и принуждение</p>
+        <p class="state__text">Люди борются за то, чего не хватает.</p>
+      </div>
+      <a class="why" id="why" href="#paths" data-i18n="why" hidden>Почему нужно и то, и другое ↓</a>
+    </div>
+  </section>
+
+  <section class="paths" id="paths">
+    <div class="wrap">
+      <header class="section-head">
+        <h2 data-i18n="paths_h">Где пути сходятся</h2>
+        <p data-i18n="paths_lead">Два направления и одна мера. Каждое направление по отдельности лечит планету только наполовину.</p>
+      </header>
+
+      <div class="cards">
+        <article class="card card--kaizen" id="kaizen">
+          <p class="label"><span class="dot"></span><span data-i18n="k_label">Kaizen · как?</span></p>
+          <h3 data-i18n="k_title">Маленькими шагами</h3>
+          <p data-i18n="k_text">Постоянное улучшение с измерением. В любви главная ловушка — незаметная деградация того, что есть. Книга «Поток любви» даёт меру: долю времени, когда оба хотят, оба согласны и никто не запрещает.</p>
+          <div class="card__links">
+            <a href="https://docs.google.com/document/d/1nue2fJzhALl1OZwp51XvarfwrpdZXQdk/edit?usp=sharing&amp;ouid=111378171419796986829&amp;rtpof=true&amp;sd=true" target="_blank" rel="noopener" data-i18n="k_link1">Читать и комментировать «Поток любви»</a>
+            <a href="https://t.me/FastNetwork6x6" target="_blank" rel="noopener" data-i18n="k_link2">Найти своих — «Шесть из шести»</a>
+          </div>
+        </article>
+        <article class="card card--blue" id="blue-ocean">
+          <p class="label"><span class="dot"></span><span data-i18n="b_label">Blue Ocean · куда?</span></p>
+          <h3 data-i18n="b_title">В новое, а не в драку</h3>
+          <p data-i18n="b_text">На большинстве рынков все дерутся за одних и тех же клиентов, и вода краснеет. В Market Game это видно за один вечер: после нескольких игр команды сами приходят к тому, что выгоднее поднимать качество и держать честную цену. Тогда зарабатывают все.</p>
+          <div class="card__links">
+            <a id="game-link" href="https://marketgame.club/?utm_source=kaizenblueocean&amp;utm_medium=referral&amp;utm_campaign=home_tools#calendar" target="_blank" rel="noopener" data-i18n="b_link">Market Game: расписание и запись на игру</a>
+          </div>
+        </article>
+        <article class="card card--lagom" id="lagom">
+          <p class="label"><span class="dot"></span><span data-i18n="l_label">Лагом · сколько?</span></p>
+          <h3 data-i18n="l_title">В самый раз</h3>
+          <p data-i18n="l_text">Шведское слово для меры: не слишком мало и не слишком много. По-русски у него есть родственник — достаток, от «достаточно». У хорошего есть оптимум: и у денег, и у близости.</p>
+        </article>
+      </div>
+
+      <div class="measure">
+        <div class="code" aria-hidden="true">
+          <b>1</b><b>1</b><b>1</b>
+          <span><i>D</i> <span data-i18n="m_d">хочу</span></span>
+          <span><i>C</i> <span data-i18n="m_c">согласен</span></span>
+          <span><i>L</i> <span data-i18n="m_l">можно</span></span>
+        </div>
+        <div>
+          <p class="label" data-i18n="m_label">Общая мера</p>
+          <h3 data-i18n="m_title">Хочу · Согласен · Можно</h3>
+          <p data-i18n="m_text">Мир становится здоровее, когда в нём больше действий, которые люди совершают по своему желанию, со своего согласия и без запрета. Так книга «Поток любви» размечает любое действие: тремя битами.</p>
+        </div>
+      </div>
+
+      <div class="evidence-block">
+        <p class="label" data-i18n="e_label">Что говорят исследования</p>
+        <div class="evidence">
+          <article class="ev">
+            <h3 data-i18n="e1_t">Либерия, 2017</h3>
+            <p data-i18n="e1_x">Терапия отдельно и деньги отдельно снижали насилие ненадолго. Вместе — сильно и надолго. Одно исследование, а не доказательство всей гипотезы.</p>
+            <small data-i18n="e1_s">Blattman, Jamison, Sheridan · American Economic Review</small>
+          </article>
+          <article class="ev">
+            <h3 data-i18n="e2_t">Гарвард, с 1938 года</h3>
+            <p data-i18n="e2_x">Самое длинное исследование счастья: «Хорошие отношения делают нас счастливее и здоровее. Точка». Самые довольные своими отношениями в 50 лет оказались самыми здоровыми в 80 — это предсказывало старость точнее, чем холестерин.</p>
+            <small data-i18n="e2_s">Harvard Study of Adult Development · Waldinger, Schulz</small>
+          </article>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <p data-i18n="f_author">Автор — Николай Владимирович Буленков, инженер и независимый исследователь.</p>
+    <div class="contacts">
+      <a href="https://t.me/DCL832" target="_blank" rel="noopener"><span data-i18n="f_channel">Канал</span><code>t.me/DCL832</code></a>
+      <a href="https://t.me/Nickbv" target="_blank" rel="noopener"><span>Telegram</span><code>@Nickbv</code></a>
+      <a href="https://wa.me/66823204796" target="_blank" rel="noopener"><span>WhatsApp</span><code>+66 82 320 4796</code></a>
+      <a href="https://line.me/ti/p/~62803839" target="_blank" rel="noopener"><span>LINE</span><code>62803839</code></a>
+    </div>
+    <p data-i18n="f_note">Прототип главного экрана · сентябрь 2026</p>
+  </div>
+</footer>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>
