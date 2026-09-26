@@ -66,11 +66,13 @@ h1, h2, h3 { text-wrap: balance; }
 .nav a:hover { color: var(--ink); background: rgba(14, 26, 43, 0.05); }
 .nav a[aria-current="page"] { color: var(--ink); background: rgba(14, 26, 43, 0.07); }
 .lang { display: flex; border: 1px solid var(--line); border-radius: 999px; padding: 2px; }
-.lang button {
-  font: 500 11px/1 var(--mono); letter-spacing: 0.1em; color: var(--mute);
+/* В исходнике язык переключают кнопки, на сайте — ссылки на другую версию. */
+.lang button, .lang a, .lang span {
+  font: 500 11px/1 var(--mono); letter-spacing: 0.1em; color: var(--mute); text-decoration: none;
   background: none; border: 0; padding: 6px 10px; border-radius: 999px; cursor: pointer;
 }
-.lang button[aria-pressed="true"] { background: var(--ink); color: var(--white); }
+.lang a:hover { color: var(--ink); }
+.lang button[aria-pressed="true"], .lang [aria-current] { background: var(--ink); color: var(--white); cursor: default; }
 @media (max-width: 560px) {
   .bar { gap: 10px; }
   .brand span { display: none; }
@@ -118,8 +120,14 @@ h1, h2, h3 { text-wrap: balance; }
 .hero h1 { margin: 0; font: 700 clamp(2rem, 4.3vw, 3.5rem)/1.04 var(--display); letter-spacing: -0.02em; }
 .lead { margin: 0; max-width: 36ch; font-size: clamp(1rem, 1.3vw, 1.15rem); color: var(--slate); }
 
-.switches { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.switch-cell { display: flex; flex-direction: column; gap: 8px; }
+/* Кнопки — в первой строке сетки, ссылки «Как это работает» — во второй:
+   так кнопки одной высоты, даже если подпись одной из них в две строки. */
+.switches { display: grid; grid-template-columns: 1fr 1fr; column-gap: 12px; }
+.switch-cell { display: contents; }
+.switch--kaizen { grid-area: 1 / 1; }
+.switch--blue { grid-area: 1 / 2; }
+#more-kaizen { grid-area: 2 / 1; margin-top: 8px; }
+#more-blue { grid-area: 2 / 2; margin-top: 8px; }
 .switch {
   --dir: var(--ink);
   position: relative; display: grid; gap: 4px; width: 100%; text-align: left; cursor: pointer;

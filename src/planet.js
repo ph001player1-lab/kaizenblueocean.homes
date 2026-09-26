@@ -7,7 +7,8 @@
 // гаснут. Кольцо вокруг планеты — символ единства: Kaizen строит одну его
 // половину, Blue Ocean — другую, и только вместе кольцо смыкается.
 
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js';
+// Three.js r170 лежит рядом, в vendor/: сайт не ходит за кодом на чужие серверы.
+import * as THREE from './vendor/three.module.min.js';
 
 const DEG = Math.PI / 180;
 

@@ -9,7 +9,7 @@
   - NASA Blue Marble — облака;
   - Natural Earth 1:50m — суша и озёра, 1:10m — населённые пункты.
 
-Результат пишется в prototype/assets/planet/:
+Результат пишется в src/assets/planet/:
   day-4k.jpg, day-2k.jpg   дневная поверхность
   night-4k.jpg, night-2k.jpg  яркость ночных огней, одноканальная
   clouds-2k.jpg            облака, одноканальные
@@ -28,7 +28,7 @@ from PIL import Image, ImageDraw, ImageFilter
 Image.MAX_IMAGE_PIXELS = None  # Black Marble 3 км — 13500×6750
 
 ROOT = Path(__file__).resolve().parent.parent
-OUT = ROOT / 'prototype' / 'assets' / 'planet'
+OUT = ROOT / 'src' / 'assets' / 'planet'
 RAW = Path(sys.argv[1]) if len(sys.argv) > 1 else ROOT / '.cache' / 'planet-raw'
 
 SOURCES = {

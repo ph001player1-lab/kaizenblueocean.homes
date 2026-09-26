@@ -1,9 +1,13 @@
-// Прототип сайта: главная и две страницы — «Деньги» и «Любовь».
-// Страницы переключаются якорями (#money, #love), любой другой якорь — главная.
+// Сайт Kaizen Blue Ocean: главная и две страницы — «Деньги» и «Любовь».
+//
+// Один и тот же код работает в двух режимах:
+// — исходник (src/index.html, он же прототип): все страницы и оба языка
+//   в одном файле, страницы переключаются якорями #money и #love, язык —
+//   кнопками;
+// — собранный сайт (tools/build_site.py): у каждой страницы и языка свой
+//   адрес, в файле только одна страница и один язык.
 // На главной — планета, два переключателя и подпись её состояния.
 // Переключатели меняют только планету и никуда не уводят.
-
-import { Planet, webglAvailable } from './planet.js';
 
 const PAGES = ['money', 'love'];
 
@@ -49,22 +53,30 @@ const swB = $('#sw-blue');
 const stateBox = $('#state');
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-let lang = store.get('kbo.lang') === 'en' ? 'en' : 'ru';
+// Все страницы в одном файле — значит, это исходник, и переключаем их сами.
+const routed = $$('[data-view]').length > 1;
+const langButtons = $$('button[data-lang]');
+
+let lang = document.documentElement.lang === 'ru' ? 'ru' : 'en';
+if (langButtons.length) {
+  const saved = store.get('kbo.lang');
+  if (saved === 'ru' || saved === 'en') lang = saved;
+}
 let state = { k: 0, b: 0 };
-const saved = store.get('kbo.state');
-if (saved && typeof saved === 'object') state = { k: saved.k ? 1 : 0, b: saved.b ? 1 : 0 };
+const savedState = store.get('kbo.state');
+if (savedState && typeof savedState === 'object') state = { k: savedState.k ? 1 : 0, b: savedState.b ? 1 : 0 };
 let touched = !!(state.k || state.b);
-let view = null;
+let view = routed ? null : (document.body.dataset.page || 'home');
 let homeY = 0;
 let planet = null;
 let heroSeen = true;
 let swapTimer = 0;
 
-// ── язык ─────────────────────────────────────────────
+// ── язык (только в исходнике: на сайте у каждого языка свой адрес) ──
 function applyLang() {
   const en = lang === 'en';
   document.documentElement.lang = lang;
-  $$('[data-lang]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.lang === lang)));
+  langButtons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.lang === lang)));
   $$('[data-alt-ru]').forEach((el) => { el.alt = en ? el.dataset.altEn : el.dataset.altRu; });
   $$('[data-label-ru]').forEach((el) => el.setAttribute('aria-label', en ? el.dataset.labelEn : el.dataset.labelRu));
   if (view) document.title = TITLES[lang][view];
@@ -73,6 +85,7 @@ function applyLang() {
 
 // ── планета и подписи ────────────────────────────────
 function renderState(animate = true) {
+  if (!hero) return;
   const code = `s${state.k}${state.b}`;
   swK.setAttribute('aria-pressed', String(!!state.k));
   swB.setAttribute('aria-pressed', String(!!state.b));
@@ -122,7 +135,43 @@ function run() {
   else planet.stop();
 }
 
-// ── страницы ─────────────────────────────────────────
+function noWebgl() {
+  planet = null;
+  document.body.classList.add('no-webgl');
+}
+
+// Планету и Three.js грузим только там, где она есть, — на главной.
+async function initPlanet() {
+  let mod;
+  try {
+    mod = await import('./planet.js');
+  } catch (e) {
+    console.error('Планета не загрузилась', e);
+    noWebgl();
+    return;
+  }
+  if (!mod.webglAvailable()) { noWebgl(); return; }
+  planet = new mod.Planet(canvas, {
+    reducedMotion: reduced,
+    textureBase: new URL('assets/planet/', import.meta.url).href,
+    onReady: (err) => {
+      if (err) { noWebgl(); return; }
+      planet.set(state.k, state.b, { instant: true });
+      layout();
+      canvas.classList.add('is-ready');
+      run();
+    },
+  });
+  layout();
+  const ro = new ResizeObserver(layout);
+  ro.observe(hero);
+  ro.observe(slot);
+  if (document.fonts) document.fonts.ready.then(layout);
+  new IntersectionObserver(([entry]) => { heroSeen = entry.isIntersecting; run(); }).observe(hero);
+  document.addEventListener('visibilitychange', run);
+}
+
+// ── страницы в исходнике ─────────────────────────────
 function hashId() {
   try { return decodeURIComponent(location.hash.slice(1)); } catch (e) { return ''; }
 }
@@ -154,28 +203,28 @@ function go(id, { first = false } = {}) {
   }
 }
 
-// Внутренние ссылки обрабатываем сами: так страницы переключаются и там,
-// где адрес страницы менять нельзя (например, внутри песочницы).
-window.addEventListener('click', (e) => {
-  if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-  const a = e.target.closest && e.target.closest('a[href^="#"]');
-  if (!a) return;
-  e.preventDefault();
-  const id = a.getAttribute('href').slice(1);
-  if (location.hash !== '#' + id) {
-    try { history.pushState(null, '', '#' + id); } catch (err) { /* адрес не меняется — не страшно */ }
-  }
-  go(id);
-}, true);
-window.addEventListener('popstate', () => go(hashId()));
-window.addEventListener('hashchange', () => go(hashId()));
-try { history.scrollRestoration = 'manual'; } catch (e) { /* нет — и ладно */ }
+if (routed) {
+  // Внутренние ссылки обрабатываем сами: так страницы переключаются и там,
+  // где адрес страницы менять нельзя (например, внутри песочницы).
+  window.addEventListener('click', (e) => {
+    if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    const a = e.target.closest && e.target.closest('a[href^="#"]');
+    if (!a) return;
+    e.preventDefault();
+    const id = a.getAttribute('href').slice(1);
+    if (location.hash !== '#' + id) {
+      try { history.pushState(null, '', '#' + id); } catch (err) { /* адрес не меняется — не страшно */ }
+    }
+    go(id);
+  }, true);
+  window.addEventListener('popstate', () => go(hashId()));
+  window.addEventListener('hashchange', () => go(hashId()));
+  try { history.scrollRestoration = 'manual'; } catch (e) { /* нет — и ладно */ }
+}
 
 // ── события ──────────────────────────────────────────
-swK.addEventListener('click', () => toggle('k'));
-swB.addEventListener('click', () => toggle('b'));
-$$('[data-lang]').forEach((b) => b.addEventListener('click', () => {
-  lang = b.dataset.lang === 'en' ? 'en' : 'ru';
+langButtons.forEach((b) => b.addEventListener('click', () => {
+  lang = b.dataset.lang === 'ru' ? 'ru' : 'en';
   store.set('kbo.lang', lang);
   applyLang();
 }));
@@ -183,31 +232,15 @@ $$('[data-lang]').forEach((b) => b.addEventListener('click', () => {
 const onScroll = () => bar.classList.toggle('bar--scrolled', window.scrollY > 4);
 window.addEventListener('scroll', onScroll, { passive: true });
 
-// Подсказка, если человек ничего не нажал. Сами направления не включаем.
-setTimeout(() => { if (!touched && view === 'home') document.body.classList.add('hint'); }, 7000);
-
-applyLang();
-go(hashId(), { first: true });
+if (langButtons.length) applyLang();
+else renderState(false);
+if (routed) go(hashId(), { first: true });
 onScroll();
 
-if (webglAvailable()) {
-  planet = new Planet(canvas, {
-    reducedMotion: reduced,
-    onReady: (err) => {
-      if (err) { planet = null; document.body.classList.add('no-webgl'); return; }
-      planet.set(state.k, state.b, { instant: true });
-      layout();
-      canvas.classList.add('is-ready');
-      run();
-    },
-  });
-  layout();
-  const ro = new ResizeObserver(layout);
-  ro.observe(hero);
-  ro.observe(slot);
-  if (document.fonts) document.fonts.ready.then(layout);
-  new IntersectionObserver(([entry]) => { heroSeen = entry.isIntersecting; run(); }).observe(hero);
-  document.addEventListener('visibilitychange', run);
-} else {
-  document.body.classList.add('no-webgl');
+if (hero) {
+  swK.addEventListener('click', () => toggle('k'));
+  swB.addEventListener('click', () => toggle('b'));
+  // Подсказка, если человек ничего не нажал. Сами направления не включаем.
+  setTimeout(() => { if (!touched && view === 'home') document.body.classList.add('hint'); }, 7000);
+  initPlanet();
 }
