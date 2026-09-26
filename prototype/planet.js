@@ -1,21 +1,15 @@
 // Планета главного экрана. Всё её состояние — два числа от 0 до 1:
 // kaizen (любовь, близость) и blueOcean (достаток, новые возможности).
 // Шейдеры читают их напрямую; переходы между состояниями — плавные твины.
+//
+// Что меняется: воздух (смог рассеивается), вода (мутная становится чистой
+// и синей), земля (выжженная зеленеет), огни городов меняют цвет, очаги износа
+// гаснут. Кольцо вокруг планеты — символ единства: Kaizen строит одну его
+// половину, Blue Ocean — другую, и только вместе кольцо смыкается.
 
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js';
 
 const DEG = Math.PI / 180;
-
-// Та же развёртка, что у SphereGeometry: долгота 0 смотрит в +X, восток — в −Z.
-function latLon(lat, lon, r = 1) {
-  const phi = (lon + 180) * DEG;
-  const theta = (90 - lat) * DEG;
-  return new THREE.Vector3(
-    -Math.cos(phi) * Math.sin(theta) * r,
-    Math.cos(theta) * r,
-    Math.sin(phi) * Math.sin(theta) * r
-  );
-}
 
 const NOISE = /* glsl */`
   float hash(vec3 p) {
@@ -70,37 +64,36 @@ const EARTH_FRAG = /* glsl */`
     float ndl = dot(N, L);
     float dayMix = smoothstep(-0.10, 0.20, ndl);
     float k = uK, b = uB;
-    float health = clamp(0.5 * k + 0.5 * b, 0.0, 1.0);
-    float sick = 1.0 - health;
+    float smog = 1.0 - 0.5 * k - 0.5 * b;   // воздух: каждое направление чистит половину
 
     vec3 day = texture2D(uDay, vUv).rgb;
     float water = texture2D(uWater, vUv).r;
     float heat = texture2D(uHeat, vUv).r;
     float lights = texture2D(uNight, vUv).r;
-
-    // Суша. Kaizen: зелень прорастает из множества точек, а не заливкой.
     float lum = dot(day, vec3(0.2126, 0.7152, 0.0722));
+
+    // Земля: выжженная сепия → естественный цвет → зелень, которая
+    // прорастает из множества точек (Kaizen — маленькими шагами).
     float snow = smoothstep(0.45, 0.7, lum);
+    vec3 barren = vec3(lum) * vec3(1.12, 0.95, 0.76) * 0.92;
+    vec3 land = mix(barren, day, clamp(0.25 + 0.45 * b + 0.3 * k, 0.0, 1.0));
     float growN = noise(vPosO * 26.0) * 0.55 + noise(vPosO * 7.0) * 0.45;
     float grow = smoothstep(growN - 0.10, growN + 0.10, k * 1.1);
-    vec3 lush = day * vec3(0.80, 1.22, 0.74);
-    vec3 land = mix(day, lush, grow * (1.0 - snow) * 0.65);
+    land = mix(land, day * vec3(0.78, 1.25, 0.72), grow * (1.0 - snow) * 0.6);
 
-    // Океан. Blue Ocean: вода становится глубокой, чистой и светится.
-    vec3 deep = day * vec3(0.55, 1.05, 1.55) + vec3(0.0, 0.012, 0.04);
-    vec3 ocean = mix(day, deep, b);
-    // Красный океан: в болезни вода мутная, с ржавым оттенком.
-    ocean = mix(ocean, vec3(lum) * vec3(0.9, 0.55, 0.5), sick * 0.35);
+    // Вода: мутная, бурая → чистая глубокая синева (Blue Ocean).
+    vec3 murky = vec3(lum) * vec3(0.95, 0.84, 0.70) * 0.85 + vec3(0.02, 0.014, 0.008);
+    vec3 ocean = mix(murky, day, clamp(0.25 + 0.3 * k + 0.45 * b, 0.0, 1.0));
+    ocean = mix(ocean, day * vec3(0.55, 1.05, 1.55) + vec3(0.0, 0.012, 0.04), b);
     vec3 surf = mix(land, ocean, water);
 
-    // Болезнь: цвет выцветает в сепию и тускнеет.
-    vec3 sepia = vec3(lum) * vec3(1.10, 0.95, 0.80);
-    surf = mix(surf, sepia * 0.85, sick * 0.55);
+    // Смог поверх всего: бурая дымка, тем плотнее, чем больнее планета.
+    vec3 smogCol = vec3(0.46, 0.38, 0.30);
+    surf = mix(surf, smogCol * (0.35 + lum), smog * 0.38);
 
     vec3 H = normalize(L + V);
-    float spec = pow(max(dot(N, H), 0.0), 140.0) * water * (0.15 + 0.35 * b) * smoothstep(0.05, 0.35, dot(N, V));
+    float spec = pow(max(dot(N, H), 0.0), 140.0) * water * (0.1 + 0.4 * b) * smoothstep(0.05, 0.35, dot(N, V));
     vec3 dayCol = surf * (0.06 + 1.1 * max(ndl, 0.0)) + vec3(1.0, 0.95, 0.88) * spec * 0.6;
-    // тёплая полоса терминатора
     dayCol += vec3(1.0, 0.25, 0.06) * 0.07 * exp(-pow(ndl * 7.0, 2.0)) * (1.0 - water * 0.5);
 
     // Ночь. Огни не гаснут, а меняют цвет: планета лечится вместе с людьми.
@@ -112,10 +105,10 @@ const EARTH_FRAG = /* glsl */`
     vec3 lightCol = mix(mix(cSick, cCold, b), mix(cWarm, cBoth, b), k);
     float jitter = 0.5 + 0.5 * sin(uTime * 3.3 + noise(vPosO * 45.0) * 14.0);
     float flicker = 1.0 - (1.0 - k) * (1.0 - 0.6 * b) * 0.45 * jitter * uMotion;
-    // «Богатая, но холодная»: мелкие огоньки гаснут, остаются одинокие крупные.
-    float lonely = b * (1.0 - k);
+    float lonely = b * (1.0 - k);   // «богатая, но холодная»: остаются одинокие огни
     float lit = smoothstep(0.02 + 0.22 * lonely, 0.75, lights);
-    vec3 nightCol = surf * 0.025 + lightCol * lit * flicker * 2.2;
+    vec3 nightSky = mix(vec3(0.010, 0.020, 0.056), vec3(0.030, 0.019, 0.012), smog);
+    vec3 nightCol = surf * 0.05 + nightSky + lightCol * lit * flicker * 2.2;
     vec3 col = mix(nightCol, dayCol, dayMix);
 
     // Очаги износа — по плотности населения. Kaizen гасит их точками,
@@ -124,15 +117,14 @@ const EARTH_FRAG = /* glsl */`
     float coarseN = fbm(vPosO * 2.2);
     float reliefK = smoothstep(fineN - 0.10, fineN + 0.10, k * 0.92) * 0.9;
     float reliefB = smoothstep(coarseN - 0.14, coarseN + 0.14, b * 1.08) * 0.7;
-    // очаги — как угли: плотнее в центрах городов, слабее над водой
     float ember = 0.55 + 0.45 * noise(vPosO * 70.0);
     float fever = pow(heat, 1.5) * ember * (1.0 - 0.75 * water) * (1.0 - reliefK) * (1.0 - reliefB) * uResidual;
     float pulse = 1.0 - 0.28 * uMotion * (0.5 + 0.5 * sin(uTime * 1.7 + coarseN * 10.0));
     col += vec3(1.0, 0.035, 0.012) * fever * pulse * mix(0.32, 1.25, 1.0 - dayMix);
 
-    // Атмосфера на краю диска: в болезни — смог, в здоровье — чистая синева.
+    // Край диска: в болезни — бурый смог, в здоровье — чистая синева.
     float fres = pow(1.0 - max(dot(N, V), 0.0), 3.0);
-    vec3 haze = mix(vec3(0.55, 0.16, 0.08), vec3(0.13, 0.36, 1.0), health);
+    vec3 haze = mix(vec3(0.13, 0.36, 1.0), vec3(0.50, 0.30, 0.18), smog);
     col += haze * fres * (0.15 + 0.85 * smoothstep(-0.3, 0.5, ndl)) * 0.55;
 
     gl_FragColor = vec4(col, 1.0);
@@ -144,7 +136,7 @@ const EARTH_FRAG = /* glsl */`
 const CLOUD_FRAG = /* glsl */`
   uniform sampler2D uClouds;
   uniform vec3 uSunDir;
-  uniform float uHealth, uShift;
+  uniform float uSmog, uShift;
   varying vec2 vUv;
   varying vec3 vNormalW;
   void main() {
@@ -152,9 +144,9 @@ const CLOUD_FRAG = /* glsl */`
     c = smoothstep(0.18, 0.95, c);
     float ndl = dot(normalize(vNormalW), normalize(uSunDir));
     float day = smoothstep(-0.12, 0.25, ndl);
-    vec3 tint = mix(vec3(0.74, 0.62, 0.52), vec3(1.0), uHealth);
+    vec3 tint = mix(vec3(1.0), vec3(0.66, 0.58, 0.50), uSmog);
     vec3 col = tint * (0.04 + 1.05 * max(ndl, 0.0));
-    gl_FragColor = vec4(col, c * (0.06 + 0.74 * day));
+    gl_FragColor = vec4(col, c * (0.06 + 0.74 * day) * (1.0 + 0.15 * uSmog));
     #include <tonemapping_fragment>
     #include <colorspace_fragment>
   }
@@ -170,139 +162,86 @@ const ATMO_VERT = /* glsl */`
   }
 `;
 
+// Ореол на светлом фоне: не свечение, а полупрозрачная дымка.
 const ATMO_FRAG = /* glsl */`
   uniform vec3 uSunDir;
-  uniform float uHealth, uEdge;
+  uniform float uSmog, uEdge;
   varying vec3 vNormalV;
   varying vec3 vNormalW;
   void main() {
-    // Видно только кольцо вокруг Земли: 1 у края диска, 0 у внешнего края.
-    float i = pow(clamp(-vNormalV.z / uEdge, 0.0, 1.0), 1.6);
-    float sun = smoothstep(-0.45, 0.6, dot(normalize(vNormalW), normalize(uSunDir)));
-    vec3 col = mix(vec3(0.70, 0.20, 0.09), vec3(0.12, 0.38, 1.0), uHealth);
-    float a = i * (0.18 + 0.82 * sun) * 0.9;
-    gl_FragColor = vec4(col * a, a);
+    float i = pow(clamp(-vNormalV.z / uEdge, 0.0, 1.0), 1.4);
+    float sun = smoothstep(-0.5, 0.6, dot(normalize(vNormalW), normalize(uSunDir)));
+    vec3 col = mix(vec3(0.30, 0.62, 1.0), vec3(0.42, 0.32, 0.24), uSmog);
+    float a = i * (0.25 + 0.75 * sun) * 0.62;
+    gl_FragColor = vec4(col, a);
     #include <colorspace_fragment>
   }
 `;
 
-const LINE_VERT = /* glsl */`
-  attribute float aT;
-  attribute float aSeed;
-  varying float vT;
-  varying float vSeed;
+const RING_VERT = /* glsl */`
+  varying vec3 vPosL;
+  varying vec3 vPosW;
+  varying vec3 vNormalW;
   void main() {
-    vT = aT;
-    vSeed = aSeed;
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    vPosL = position;
+    vec4 wp = modelMatrix * vec4(position, 1.0);
+    vPosW = wp.xyz;
+    vNormalW = normalize(mat3(modelMatrix) * normal);
+    gl_Position = projectionMatrix * viewMatrix * wp;
   }
 `;
 
-// Дуги Blue Ocean: по ним бегут импульсы обмена от города к городу.
-const ARC_FRAG = /* glsl */`
-  uniform float uAmount, uTime, uMotion;
-  uniform vec3 uColor;
-  varying float vT;
-  varying float vSeed;
+// Кольцо из модулей. Пока его нет, виден только пунктир — место, где оно
+// может быть. Каждая половина строится от дальней стороны к ближней:
+// Kaizen — золотая, Blue Ocean — синяя. Смыкаются они прямо перед зрителем.
+const RING_FRAG = /* glsl */`
+  uniform float uK, uB, uFront, uTime, uMotion;
+  uniform vec3 uSunDir, uCamPos, uGold, uBlue;
+  varying vec3 vPosL;
+  varying vec3 vPosW;
+  varying vec3 vNormalW;
+  const float PI = 3.14159265;
   void main() {
-    float appear = smoothstep(vSeed * 0.8, vSeed * 0.8 + 0.2, uAmount);
-    float ends = smoothstep(0.0, 0.06, vT) * smoothstep(1.0, 0.94, vT);
-    float head = fract(uTime * 0.12 + vSeed * 7.0);
-    float d = head - vT;
-    float tail = step(0.0, d) * exp(-d * 10.0) * uMotion;
-    float a = appear * ends * (0.07 + 1.1 * tail);
-    gl_FragColor = vec4(uColor * a, a);
+    float ang = atan(vPosL.y, vPosL.x);
+    float rel = mod(ang - uFront + PI, 2.0 * PI) - PI;   // 0 — ближе всего к зрителю
+    float side = step(0.0, rel);                          // 1 — половина Kaizen
+    float prog = mix(uB, uK, side) * 1.02;
+    float fromBack = (PI - abs(rel)) / PI;                // 0 сзади, 1 спереди
+    float built = 1.0 - smoothstep(prog - 0.012, prog, fromBack);
+
+    // Свет: рассеянный и блик; в тени планеты кольцо темнее.
+    vec3 N = normalize(vNormalW);
+    vec3 L = normalize(uSunDir);
+    vec3 V = normalize(uCamPos - vPosW);
+    float t = dot(vPosW, L);
+    float shadow = t < 0.0 ? smoothstep(0.9, 1.05, sqrt(max(dot(vPosW, vPosW) - t * t, 0.0))) : 1.0;
+    float diff = max(dot(N, L), 0.0) * shadow;
+    float spec = pow(max(dot(N, normalize(L + V)), 0.0), 36.0) * shadow;
+
+    float u = ang / (2.0 * PI);
+    float seg = fract(u * 64.0);
+    float joint = smoothstep(0.0, 0.07, seg) * smoothstep(1.0, 0.93, seg);
+    float node = step(0.75, fract(u * 16.0)) * exp(-pow((seg - 0.5) / 0.16, 2.0));
+
+    vec3 base = mix(uBlue, uGold, side);
+    vec3 col = base * (0.5 + 0.8 * diff) * mix(0.6, 1.0, joint) + vec3(1.0, 0.97, 0.9) * spec * 0.55;
+
+    float growing = step(prog, 1.0);
+    float tip = exp(-pow((fromBack - prog) / 0.02, 2.0)) * growing;
+    float closed = smoothstep(0.985, 1.0, min(uK, uB));
+    float seam = exp(-pow(rel / 0.035, 2.0)) * closed;
+    float run = closed * uMotion * pow(0.5 + 0.5 * cos(ang - uTime * 0.35), 24.0);
+    col += vec3(1.0, 0.96, 0.86) * (tip * 0.9 + seam * 0.7 + run * 0.4 + node * built * 0.35);
+
+    // Пунктир там, где кольца ещё нет.
+    float dash = step(0.5, fract(u * 160.0));
+    vec3 ghost = vec3(0.36, 0.43, 0.52);
+    float alpha = mix(0.26 * dash, 1.0, built);
+    if (alpha < 0.01) discard;
+    gl_FragColor = vec4(mix(ghost, col, built), alpha);
     #include <colorspace_fragment>
   }
 `;
-
-// Нити Kaizen: короткие связи между соседями, мерцают спокойно.
-const THREAD_FRAG = /* glsl */`
-  uniform float uAmount, uTime, uMotion;
-  uniform vec3 uColor;
-  varying float vT;
-  varying float vSeed;
-  void main() {
-    float appear = smoothstep(vSeed * 0.85, vSeed * 0.85 + 0.15, uAmount);
-    float ends = smoothstep(0.0, 0.15, vT) * smoothstep(1.0, 0.85, vT);
-    float shimmer = 0.7 + 0.3 * sin(uTime * 1.2 + vSeed * 40.0) * uMotion;
-    float a = appear * ends * shimmer * 0.55;
-    gl_FragColor = vec4(uColor * a, a);
-    #include <colorspace_fragment>
-  }
-`;
-
-function buildLines(pairs, segments, lift, material) {
-  const pos = [];
-  const t = [];
-  const seed = [];
-  const a = new THREE.Vector3();
-  const b = new THREE.Vector3();
-  const p = new THREE.Vector3();
-  let prev = new THREE.Vector3();
-  let prevT = 0;
-  pairs.forEach(([lat1, lon1, lat2, lon2], i) => {
-    a.copy(latLon(lat1, lon1));
-    b.copy(latLon(lat2, lon2));
-    const angle = a.angleTo(b);
-    const h = lift(angle);
-    const s = (Math.sin(i * 12.9898) * 43758.5453) % 1;
-    const rnd = Math.abs(s);
-    for (let j = 0; j <= segments; j++) {
-      const u = j / segments;
-      // сферическая интерполяция + подъём над поверхностью
-      const sinA = Math.sin(angle);
-      const w1 = Math.sin((1 - u) * angle) / sinA;
-      const w2 = Math.sin(u * angle) / sinA;
-      p.set(a.x * w1 + b.x * w2, a.y * w1 + b.y * w2, a.z * w1 + b.z * w2)
-        .normalize().multiplyScalar(1.002 + h * Math.sin(Math.PI * u));
-      if (j > 0) {
-        pos.push(prev.x, prev.y, prev.z, p.x, p.y, p.z);
-        t.push(prevT, u);
-        seed.push(rnd, rnd);
-      }
-      prev = p.clone();
-      prevT = u;
-    }
-  });
-  const geo = new THREE.BufferGeometry();
-  geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-  geo.setAttribute('aT', new THREE.Float32BufferAttribute(t, 1));
-  geo.setAttribute('aSeed', new THREE.Float32BufferAttribute(seed, 1));
-  return new THREE.LineSegments(geo, material);
-}
-
-function buildStars(count) {
-  const pos = new Float32Array(count * 3);
-  const size = new Float32Array(count);
-  const alpha = new Float32Array(count);
-  for (let i = 0; i < count; i++) {
-    const u = Math.random() * 2 - 1;
-    const th = Math.random() * Math.PI * 2;
-    const r = Math.sqrt(1 - u * u);
-    pos.set([r * Math.cos(th) * 60, u * 60, r * Math.sin(th) * 60], i * 3);
-    size[i] = 0.6 + Math.pow(Math.random(), 4) * 1.8;
-    alpha[i] = 0.25 + Math.random() * 0.6;
-  }
-  const geo = new THREE.BufferGeometry();
-  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-  geo.setAttribute('aSize', new THREE.BufferAttribute(size, 1));
-  geo.setAttribute('aAlpha', new THREE.BufferAttribute(alpha, 1));
-  const mat = new THREE.ShaderMaterial({
-    uniforms: { uPixel: { value: 1 } },
-    vertexShader: `
-      attribute float aSize; attribute float aAlpha; uniform float uPixel; varying float vA;
-      void main() { vA = aAlpha; gl_PointSize = aSize * uPixel;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
-    fragmentShader: `
-      varying float vA;
-      void main() { float d = length(gl_PointCoord - 0.5); if (d > 0.5) discard;
-        gl_FragColor = vec4(vec3(0.85, 0.9, 1.0), vA * smoothstep(0.5, 0.1, d)); }`,
-    transparent: true,
-    depthWrite: false,
-  });
-  return new THREE.Points(geo, mat);
-}
 
 const ease = (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
 
@@ -318,8 +257,8 @@ export class Planet {
     this.clock = new THREE.Clock();
     this.time = 0;
 
-    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
-    renderer.setClearColor(0x060a14, 1);
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' });
+    renderer.setClearColor(0xffffff, 0);
     renderer.toneMapping = THREE.NeutralToneMapping;
     renderer.toneMappingExposure = 1.0;
     renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -327,7 +266,7 @@ export class Planet {
 
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(28, 1, 0.1, 200);
-    this.sun = new THREE.Vector3(-0.82, 0.32, 0.48).normalize();
+    this.sun = new THREE.Vector3(-0.72, 0.33, 0.61).normalize();
 
     this.tilt = new THREE.Group();
     this.tilt.rotation.set(0.28, 0, -0.32);
@@ -337,9 +276,6 @@ export class Planet {
     // В начале к зрителю повёрнуты Европа и Африка, Азия уходит в ночь.
     const phi = (22 + 180) * DEG;
     this.spin.rotation.y = -Math.atan2(-Math.cos(phi), Math.sin(phi));
-
-    this.stars = buildStars(1600);
-    this.scene.add(this.stars);
 
     this.shared = {
       uK: { value: 0 }, uB: { value: 0 }, uTime: { value: 0 }, uResidual: { value: 1 },
@@ -366,9 +302,8 @@ export class Planet {
       tex('water-2k.png'),
       tex('heat-1k.png'),
       tex('clouds-2k.jpg'),
-      fetch(this.base + 'links.json').then((r) => r.json()),
-    ]).then(([day, night, water, heat, clouds, links]) => {
-      this.build({ day, night, water, heat, clouds, links, mobile });
+    ]).then(([day, night, water, heat, clouds]) => {
+      this.build({ day, night, water, heat, clouds, mobile });
       onReady && onReady();
     }).catch((err) => {
       console.error('Планета не загрузилась', err);
@@ -376,7 +311,7 @@ export class Planet {
     });
   }
 
-  build({ day, night, water, heat, clouds, links, mobile }) {
+  build({ day, night, water, heat, clouds, mobile }) {
     const seg = mobile ? [128, 96] : [192, 128];
     const earthMat = new THREE.ShaderMaterial({
       uniforms: {
@@ -388,24 +323,21 @@ export class Planet {
     });
     this.spin.add(new THREE.Mesh(new THREE.SphereGeometry(1, seg[0], seg[1]), earthMat));
 
-    this.cloudUniforms = {
-      uClouds: { value: clouds }, uSunDir: this.shared.uSunDir, uHealth: { value: 0 }, uShift: { value: 0 },
-    };
-    const cloudMat = new THREE.ShaderMaterial({
-      uniforms: this.cloudUniforms,
-      vertexShader: SURFACE_VERT,
-      fragmentShader: CLOUD_FRAG,
-      transparent: true,
-      depthWrite: false,
-    });
-    this.spin.add(new THREE.Mesh(new THREE.SphereGeometry(1.007, seg[0], seg[1]), cloudMat));
+    this.cloudUniforms = { uClouds: { value: clouds }, uSunDir: this.shared.uSunDir, uSmog: { value: 1 }, uShift: { value: 0 } };
+    this.spin.add(new THREE.Mesh(
+      new THREE.SphereGeometry(1.007, seg[0], seg[1]),
+      new THREE.ShaderMaterial({
+        uniforms: this.cloudUniforms,
+        vertexShader: SURFACE_VERT,
+        fragmentShader: CLOUD_FRAG,
+        transparent: true,
+        depthWrite: false,
+      })
+    ));
 
     const atmoR = 1.1;
-    this.atmoUniforms = {
-      uSunDir: this.shared.uSunDir, uHealth: { value: 0 },
-      uEdge: { value: Math.sqrt(1 - 1 / (atmoR * atmoR)) },
-    };
-    const atmo = new THREE.Mesh(
+    this.atmoUniforms = { uSunDir: this.shared.uSunDir, uSmog: { value: 1 }, uEdge: { value: Math.sqrt(1 - 1 / (atmoR * atmoR)) } };
+    this.tilt.add(new THREE.Mesh(
       new THREE.SphereGeometry(atmoR, 96, 64),
       new THREE.ShaderMaterial({
         uniforms: this.atmoUniforms,
@@ -414,27 +346,33 @@ export class Planet {
         side: THREE.BackSide,
         transparent: true,
         depthWrite: false,
-        blending: THREE.AdditiveBlending,
+      })
+    ));
+
+    // Кольцо лежит в плоскости экватора. uFront — угол его точки,
+    // ближайшей к зрителю: там половины и смыкаются.
+    const ring = new THREE.Mesh(
+      new THREE.TorusGeometry(1.28, 0.012, 12, mobile ? 480 : 720),
+      new THREE.ShaderMaterial({
+        uniforms: {
+          uK: this.shared.uK, uB: this.shared.uB, uTime: this.shared.uTime, uMotion: this.shared.uMotion,
+          uSunDir: this.shared.uSunDir, uCamPos: this.shared.uCamPos, uFront: { value: 0 },
+          uGold: { value: new THREE.Color('#d9a02b') }, uBlue: { value: new THREE.Color('#1c8fd8') },
+        },
+        vertexShader: RING_VERT,
+        fragmentShader: RING_FRAG,
+        transparent: true,
       })
     );
-    this.tilt.add(atmo);
-
-    const lineMat = (frag, color) => new THREE.ShaderMaterial({
-      uniforms: {
-        uAmount: { value: 0 }, uTime: this.shared.uTime, uMotion: this.shared.uMotion,
-        uColor: { value: new THREE.Color(color) },
-      },
-      vertexShader: LINE_VERT,
-      fragmentShader: frag,
-      transparent: true,
-      depthWrite: false,
-      blending: THREE.AdditiveBlending,
-    });
-    const arcs = links.arcs.filter((_, i) => i % 3 !== 2);
-    this.arcs = buildLines(arcs, 48, (ang) => 0.025 + 0.18 * (ang / Math.PI), lineMat(ARC_FRAG, 0x5cc8ff));
-    const threads = mobile ? links.threads.filter((_, i) => i % 2 === 0) : links.threads;
-    this.threads = buildLines(threads, 8, (ang) => 0.003 + 0.08 * ang, lineMat(THREAD_FRAG, 0xffc46b));
-    this.spin.add(this.arcs, this.threads);
+    ring.rotation.x = Math.PI / 2;
+    ring.renderOrder = 2;
+    this.tilt.add(ring);
+    this.scene.updateMatrixWorld(true);
+    let best = -Infinity;
+    for (let a = 0; a < Math.PI * 2; a += 0.5 * DEG) {
+      const z = new THREE.Vector3(Math.cos(a) * 1.28, Math.sin(a) * 1.28, 0).applyMatrix4(ring.matrixWorld).z;
+      if (z > best) { best = z; ring.material.uniforms.uFront.value = a; }
+    }
 
     this.ready = true;
     this.apply();
@@ -443,10 +381,14 @@ export class Planet {
 
   // Куда поставить планету: центр и радиус диска в пикселях холста.
   layout(width, height, cx, cy, radius) {
+    if (width < 10 || height < 10) return;
     const dpr = Math.min(window.devicePixelRatio || 1, this.mobile ? 1.75 : 2);
-    this.renderer.setPixelRatio(dpr);
-    this.renderer.setSize(width, height, false);
-    this.stars.material.uniforms.uPixel.value = dpr;
+    const size = `${width}x${height}@${dpr}`;
+    if (size !== this.size) {   // смена размера холста очищает его — не делаем этого зря
+      this.size = size;
+      this.renderer.setPixelRatio(dpr);
+      this.renderer.setSize(width, height, false);
+    }
     const cam = this.camera;
     cam.aspect = width / height;
     const halfFov = (cam.fov / 2) * DEG;
@@ -480,11 +422,9 @@ export class Planet {
     this.shared.uB.value = b;
     this.shared.uResidual.value = this.residual;
     if (!this.ready) return;
-    const health = 0.5 * k + 0.5 * b;
-    this.cloudUniforms.uHealth.value = health;
-    this.atmoUniforms.uHealth.value = health;
-    this.arcs.material.uniforms.uAmount.value = b;
-    this.threads.material.uniforms.uAmount.value = k;
+    const smog = 1 - 0.5 * k - 0.5 * b;
+    this.cloudUniforms.uSmog.value = smog;
+    this.atmoUniforms.uSmog.value = smog;
   }
 
   step(dt) {

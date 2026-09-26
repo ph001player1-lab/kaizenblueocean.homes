@@ -11,16 +11,14 @@
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<header class="bar">
-  <a class="brand" href="#top">
-    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10.5" fill="none" stroke="#e7efe9" stroke-opacity=".45"/><path d="M12 1.5a10.5 10.5 0 0 0 0 21z" fill="#5cc8ff"/><circle cx="16.4" cy="9.2" r="2.1" fill="#ffc46b"/></svg>
-    Kaizen Blue Ocean
+<header class="bar" id="bar">
+  <a class="brand" href="#top" aria-label="Kaizen Blue Ocean">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7.2" fill="#0b78bf"/><path d="M12 4.8a7.2 7.2 0 0 1 0 14.4z" fill="#1e8449"/><ellipse cx="12" cy="12" rx="11" ry="3.6" fill="none" stroke="#e0a635" stroke-width="1.6" transform="rotate(-18 12 12)"/></svg>
+    <span>Kaizen Blue Ocean</span>
   </a>
-  <nav class="nav" aria-label="Разделы">
-    <a href="#blue-ocean" data-i18n="nav_money">Деньги</a>
-    <a href="#kaizen" data-i18n="nav_love">Любовь</a>
-    <a href="#lagom" data-i18n="nav_lagom">Лагом</a>
-    <a href="https://docs.google.com/document/d/1nue2fJzhALl1OZwp51XvarfwrpdZXQdk/edit?usp=sharing&amp;ouid=111378171419796986829&amp;rtpof=true&amp;sd=true" target="_blank" rel="noopener" data-i18n="nav_book">Книга</a>
+  <nav class="nav" aria-label="Разделы" data-label-ru="Разделы" data-label-en="Sections">
+    <a href="#money" data-nav="money"><span data-l="ru">Деньги</span><span data-l="en">Money</span></a>
+    <a href="#love" data-nav="love"><span data-l="ru">Любовь</span><span data-l="en">Love</span></a>
   </nav>
   <div class="lang" role="group" aria-label="Язык / Language">
     <button type="button" data-lang="ru" aria-pressed="true">RU</button>
@@ -29,119 +27,403 @@
 </header>
 
 <main>
+<!-- ═══════════════════ ГЛАВНАЯ ═══════════════════ -->
+<div class="view" data-view="home">
   <section class="hero" id="top">
     <canvas class="hero__canvas" id="planet" aria-hidden="true"></canvas>
     <div class="hero__slot" id="planet-slot" aria-hidden="true"></div>
-    <p class="nogl" data-i18n="nogl">Здесь вращается Земля. Ваш браузер не показывает 3D-графику, но переключатели и подписи работают.</p>
+    <p class="nogl"><span data-l="ru">Здесь вращается Земля. Ваш браузер не показывает 3D-графику, но переключатели и подписи работают.</span><span data-l="en">The Earth turns here. Your browser does not show 3D graphics, but the switches and captions work.</span></p>
 
     <div class="hero__copy">
-      <p class="eyebrow" data-i18n="eyebrow">Мир начинается дома</p>
-      <h1 data-i18n="h1">Чего не хватает миру?</h1>
-      <p class="lead" data-i18n="lead">Наша гипотеза: люди разрушают себя, друг друга и планету, когда им не хватает любви и достатка. Включите — и посмотрите, что изменится.</p>
+      <p class="eyebrow"><span data-l="ru">Мир начинается дома</span><span data-l="en">Peace begins at home</span></p>
+      <h1><span data-l="ru">Чего не хватает миру?</span><span data-l="en">What is the world missing?</span></h1>
+      <p class="lead"><span data-l="ru">Наша гипотеза: люди разрушают себя, друг друга и планету, когда им не хватает любви и достатка. Включите — и посмотрите, что изменится.</span><span data-l="en">Our hypothesis: people destroy themselves, each other and the planet when they lack love and sufficiency. Switch them on and see what changes.</span></p>
 
-      <div class="switches" role="group" aria-label="Два направления" data-i18n-label="switches">
+      <div class="switches" role="group" id="switches" aria-label="Два направления" data-label-ru="Два направления" data-label-en="Two directions">
         <div class="switch-cell switch-cell--kaizen">
           <button type="button" class="switch switch--kaizen" id="sw-kaizen" aria-pressed="false">
             <span class="switch__name">Kaizen</span>
-            <span class="switch__verb" data-i18n="kaizen_verb">Улучшать любовь</span>
+            <span class="switch__verb"><span data-l="ru">Улучшать любовь</span><span data-l="en">Improve love</span></span>
             <span class="switch__track" aria-hidden="true"><span class="switch__knob"></span></span>
           </button>
-          <a class="switch__more" id="more-kaizen" href="#kaizen" data-i18n="more" hidden>Как это работает →</a>
+          <a class="switch__more" id="more-kaizen" href="#love" hidden><span data-l="ru">Как это работает →</span><span data-l="en">How it works →</span></a>
         </div>
         <div class="switch-cell switch-cell--blue">
           <button type="button" class="switch switch--blue" id="sw-blue" aria-pressed="false">
             <span class="switch__name">Blue Ocean</span>
-            <span class="switch__verb" data-i18n="bo_verb">Создавать достаток</span>
+            <span class="switch__verb"><span data-l="ru">Создавать достаток</span><span data-l="en">Create prosperity</span></span>
             <span class="switch__track" aria-hidden="true"><span class="switch__knob"></span></span>
           </button>
-          <a class="switch__more" id="more-blue" href="#blue-ocean" data-i18n="more" hidden>Как это работает →</a>
+          <a class="switch__more" id="more-blue" href="#money" hidden><span data-l="ru">Как это работает →</span><span data-l="en">How it works →</span></a>
         </div>
       </div>
 
       <div class="state" id="state" aria-live="polite" data-state="s00">
-        <p class="state__label" data-i18n="state_label">Состояние планеты</p>
+        <p class="state__label"><span data-l="ru">Состояние планеты</span><span data-l="en">State of the planet</span></p>
         <p class="state__title">Дефицит и принуждение</p>
-        <p class="state__text">Люди борются за то, чего не хватает.</p>
+        <p class="state__text">Люди борются за то, чего не хватает. Болеют и воздух, и вода, и земля.</p>
       </div>
-      <a class="why" id="why" href="#paths" data-i18n="why" hidden>Почему нужно и то, и другое ↓</a>
+      <a class="why" id="why" href="#chapters" hidden><span data-l="ru">Как к этому прийти ↓</span><span data-l="en">How to get there ↓</span></a>
     </div>
   </section>
 
-  <section class="paths" id="paths">
-    <div class="wrap">
-      <header class="section-head">
-        <h2 data-i18n="paths_h">Где пути сходятся</h2>
-        <p data-i18n="paths_lead">Два направления и одна мера. Каждое направление по отдельности лечит планету только наполовину.</p>
-      </header>
-
-      <div class="cards">
-        <article class="card card--kaizen" id="kaizen">
-          <p class="label"><span class="dot"></span><span data-i18n="k_label">Kaizen · как?</span></p>
-          <h3 data-i18n="k_title">Маленькими шагами</h3>
-          <p data-i18n="k_text">Постоянное улучшение с измерением. В любви главная ловушка — незаметная деградация того, что есть. Книга «Поток любви» даёт меру: долю времени, когда оба хотят, оба согласны и никто не запрещает.</p>
-          <div class="card__links">
-            <a href="https://docs.google.com/document/d/1nue2fJzhALl1OZwp51XvarfwrpdZXQdk/edit?usp=sharing&amp;ouid=111378171419796986829&amp;rtpof=true&amp;sd=true" target="_blank" rel="noopener" data-i18n="k_link1">Читать и комментировать «Поток любви»</a>
-            <a href="https://t.me/FastNetwork6x6" target="_blank" rel="noopener" data-i18n="k_link2">Найти своих — «Шесть из шести»</a>
-          </div>
-        </article>
-        <article class="card card--blue" id="blue-ocean">
-          <p class="label"><span class="dot"></span><span data-i18n="b_label">Blue Ocean · куда?</span></p>
-          <h3 data-i18n="b_title">В новое, а не в драку</h3>
-          <p data-i18n="b_text">На большинстве рынков все дерутся за одних и тех же клиентов, и вода краснеет. В Market Game это видно за один вечер: после нескольких игр команды сами приходят к тому, что выгоднее поднимать качество и держать честную цену. Тогда зарабатывают все.</p>
-          <div class="card__links">
-            <a id="game-link" href="https://marketgame.club/?utm_source=kaizenblueocean&amp;utm_medium=referral&amp;utm_campaign=home_tools#calendar" target="_blank" rel="noopener" data-i18n="b_link">Market Game: расписание и запись на игру</a>
-          </div>
-        </article>
-        <article class="card card--lagom" id="lagom">
-          <p class="label"><span class="dot"></span><span data-i18n="l_label">Лагом · сколько?</span></p>
-          <h3 data-i18n="l_title">В самый раз</h3>
-          <p data-i18n="l_text">Шведское слово для меры: не слишком мало и не слишком много. По-русски у него есть родственник — достаток, от «достаточно». У хорошего есть оптимум: и у денег, и у близости.</p>
-        </article>
+  <section class="chapter chapter--money" id="chapters">
+    <div class="chapter__in">
+      <div class="chapter__media">
+        <svg class="illo" viewBox="80 52 400 336" role="img" aria-label="Дом на фундаменте из базовых потребностей: еда, жильё, здоровье, безопасность" data-label-ru="Дом на фундаменте из базовых потребностей: еда, жильё, здоровье, безопасность" data-label-en="A house on a foundation of basic needs: food, home, health, safety">
+          <defs>
+            <linearGradient id="g-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d6e8f6"/><stop offset="1" stop-color="#f4f9fd"/></linearGradient>
+            <linearGradient id="g-block" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1d8bd1"/><stop offset="1" stop-color="#0b6aa8"/></linearGradient>
+            <linearGradient id="g-window" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe6a8"/><stop offset="1" stop-color="#f0b443"/></linearGradient>
+          </defs>
+          <circle cx="280" cy="222" r="164" fill="url(#g-sky)"/>
+          <circle cx="418" cy="104" r="20" fill="#f4c35a"/>
+          <ellipse cx="280" cy="372" rx="194" ry="10" fill="#0e1a2b" opacity=".08"/>
+          <rect x="340" y="104" width="24" height="52" fill="#0e1a2b"/>
+          <polygon points="142,186 280,86 418,186" fill="#0e1a2b"/>
+          <rect x="160" y="182" width="240" height="122" fill="#ffffff" stroke="#0e1a2b" stroke-width="3"/>
+          <g stroke="#0e1a2b" stroke-width="3">
+            <rect x="188" y="208" width="56" height="46" rx="3" fill="url(#g-window)"/>
+            <rect x="316" y="208" width="56" height="46" rx="3" fill="url(#g-window)"/>
+            <path d="M216 208v46M188 231h56M344 208v46M316 231h56" fill="none" stroke-width="2.5"/>
+            <rect x="257" y="234" width="46" height="70" rx="3" fill="#d6e7f5"/>
+          </g>
+          <circle cx="293" cy="272" r="3.5" fill="#0e1a2b"/>
+          <rect x="112" y="262" width="8" height="42" rx="3" fill="#7a5a3a"/>
+          <circle cx="116" cy="250" r="26" fill="#2e9e5b"/><circle cx="100" cy="262" r="16" fill="#3bb06a"/><circle cx="132" cy="264" r="15" fill="#258a4e"/>
+          <g font-family="Onest, system-ui, sans-serif" font-size="13.5" font-weight="600" fill="#ffffff" text-anchor="middle">
+            <rect x="95" y="304" width="88" height="60" rx="6" fill="url(#g-block)"/>
+            <rect x="189" y="304" width="88" height="60" rx="6" fill="url(#g-block)"/>
+            <rect x="283" y="304" width="88" height="60" rx="6" fill="url(#g-block)"/>
+            <rect x="377" y="304" width="88" height="60" rx="6" fill="url(#g-block)"/>
+            <g fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M127 324h24a12 10 0 0 1-24 0zM135 319q-3-4 0-8M143 319q-3-4 0-8"/>
+              <circle cx="228" cy="328" r="6"/><path d="M234 328h12M242 328v5M246 328v4"/>
+              <path d="M323 318h6v6h6v6h-6v6h-6v-6h-6v-6h6z"/>
+              <path d="M421 316l10 3.5v7c0 6.5-4.5 10-10 12-5.5-2-10-5.5-10-12v-7z"/><path d="M416.5 327l3.5 3.5 5.5-6.5"/>
+            </g>
+            <text x="139" y="356" data-l="ru">Еда</text><text x="139" y="356" data-l="en">Food</text>
+            <text x="233" y="356" data-l="ru">Жильё</text><text x="233" y="356" data-l="en">Home</text>
+            <text x="327" y="356" data-l="ru">Здоровье</text><text x="327" y="356" data-l="en">Health</text>
+            <text x="421" y="356" data-l="ru" font-size="11.5">Безопасность</text><text x="421" y="356" data-l="en">Safety</text>
+          </g>
+        </svg>
       </div>
-
-      <div class="measure">
-        <div class="code" aria-hidden="true">
-          <b>1</b><b>1</b><b>1</b>
-          <span><i>D</i> <span data-i18n="m_d">хочу</span></span>
-          <span><i>C</i> <span data-i18n="m_c">согласен</span></span>
-          <span><i>L</i> <span data-i18n="m_l">можно</span></span>
-        </div>
-        <div>
-          <p class="label" data-i18n="m_label">Общая мера</p>
-          <h3 data-i18n="m_title">Хочу · Согласен · Можно</h3>
-          <p data-i18n="m_text">Мир становится здоровее, когда в нём больше действий, которые люди совершают по своему желанию, со своего согласия и без запрета. Так книга «Поток любви» размечает любое действие: тремя битами.</p>
-        </div>
-      </div>
-
-      <div class="evidence-block">
-        <p class="label" data-i18n="e_label">Что говорят исследования</p>
-        <div class="evidence">
-          <article class="ev">
-            <h3 data-i18n="e1_t">Либерия, 2017</h3>
-            <p data-i18n="e1_x">Терапия отдельно и деньги отдельно снижали насилие ненадолго. Вместе — сильно и надолго. Одно исследование, а не доказательство всей гипотезы.</p>
-            <small data-i18n="e1_s">Blattman, Jamison, Sheridan · American Economic Review</small>
-          </article>
-          <article class="ev">
-            <h3 data-i18n="e2_t">Гарвард, с 1938 года</h3>
-            <p data-i18n="e2_x">Самое длинное исследование счастья: «Хорошие отношения делают нас счастливее и здоровее. Точка». Самые довольные своими отношениями в 50 лет оказались самыми здоровыми в 80 — это предсказывало старость точнее, чем холестерин.</p>
-            <small data-i18n="e2_s">Harvard Study of Adult Development · Waldinger, Schulz</small>
-          </article>
-        </div>
+      <div class="chapter__text">
+        <p class="label"><span class="dot dot--money"></span>Blue Ocean</p>
+        <h2 class="chapter__title"><span data-l="ru">Деньги</span><span data-l="en">Money</span></h2>
+        <p class="chapter__kicker"><span data-l="ru">Достаток — это фундамент</span><span data-l="en">Prosperity is the foundation</span></p>
+        <p><span data-l="ru">Когда денег не хватает на еду, жильё и лечение, человек живёт в режиме выживания. Дефицит сужает мышление: трудно думать о будущем, о других и о новом, когда всё внимание уходит на то, чтобы закрыть сегодняшний день. Отсюда вынужденный труд и драка за один и тот же пирог — красный океан.</span><span data-l="en">When money doesn't cover food, housing and health, a person lives in survival mode. Scarcity narrows thinking: it is hard to think about the future, about others or about anything new when all attention goes into getting through today. This is where forced labor and the fight over the same pie come from: the red ocean.</span></p>
+        <p><span data-l="ru">Blue Ocean — выход из этой драки: создавать новую ценность, а не отбивать чужих клиентов. Этому можно научиться, не рискуя своими деньгами: в бизнес-игре Market Game команды за один вечер проходят путь от ценовой войны к рынку, на котором зарабатывают все.</span><span data-l="en">Blue Ocean is the way out of that fight: create new value instead of taking customers from others. You can learn it without risking your own money: in the business game Market Game, teams go in one evening from a price war to a market where everyone earns.</span></p>
+        <div class="actions"><a class="btn btn--money btn--lg" href="#money"><span data-l="ru">Деньги</span><span data-l="en">Money</span> <span class="arr">→</span></a></div>
       </div>
     </div>
   </section>
+
+  <section class="chapter chapter--love">
+    <div class="chapter__in">
+      <div class="chapter__media"><img class="book-shot" src="assets/img/book.webp" width="720" height="1080" loading="lazy" data-alt-ru="Книга Н. В. Буленкова «Поток любви. Инструкция по эксплуатации»" data-alt-en="The book “Flow of Love. Operating Manual” by Nikolay Bulenkov" alt="Книга Н. В. Буленкова «Поток любви. Инструкция по эксплуатации»"></div>
+      <div class="chapter__text">
+        <p class="label"><span class="dot dot--love"></span>Kaizen</p>
+        <h2 class="chapter__title"><span data-l="ru">Любовь</span><span data-l="en">Love</span></h2>
+        <p class="chapter__kicker"><span data-l="ru">Как понять, что отношения становятся лучше?</span><span data-l="en">How do you know a relationship is getting better?</span></p>
+        <p><span data-l="ru">Мы умеем измерять выручку, но не отношения — поэтому одни и те же ссоры идут годами. Двое любят друг друга и каждый день доказывают, что второй любит неправильно: слово одно, а определения разные.</span><span data-l="en">We know how to measure revenue but not relationships, so the same quarrels go on for years. Two people love each other and every day prove that the other one loves the wrong way: one word, different definitions.</span></p>
+        <p><span data-l="ru">Книга «Поток любви» — инженерный взгляд на контакт двух людей: из чего он состоит, как проверить, согласован ли он, и как из отдельных согласованных действий складывается поток любви. Это Kaizen для отношений: маленькие шаги, которые можно заметить и повторить.</span><span data-l="en">The book “Flow of Love” is an engineer's view of the contact between two people: what it is made of, how to check whether it is matched, and how separate matched actions add up to a flow of love. It is Kaizen for relationships: small steps you can notice and repeat.</span></p>
+        <div class="actions"><a class="btn btn--love btn--lg" href="#love"><span data-l="ru">Любовь</span><span data-l="en">Love</span> <span class="arr">→</span></a></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ═══════════════════ ДЕНЬГИ ═══════════════════ -->
+<div class="view" data-view="money" hidden>
+  <section class="page-hero">
+    <div class="page-hero__text">
+      <p class="crumbs"><a href="#top"><span data-l="ru">Главная</span><span data-l="en">Home</span></a> / <span data-l="ru">Деньги</span><span data-l="en">Money</span></p>
+      <p class="label"><span class="dot dot--money"></span><span data-l="ru">Деньги · Blue Ocean</span><span data-l="en">Money · Blue Ocean</span></p>
+      <h1><span data-l="ru">Красный океан или голубой?</span><span data-l="en">Red ocean or blue?</span></h1>
+      <p class="lead"><span data-l="ru">На большинстве рынков все дерутся за одних и тех же клиентов — и вода краснеет. Голубой океан — это пространство, где драться не нужно: вы создаёте новый спрос, а не отбиваете чужой. Этому можно научиться, не рискуя своими деньгами.</span><span data-l="en">In most markets everyone fights for the same customers, and the water turns red. A blue ocean is a space where there is no need to fight: you create new demand instead of taking someone else's. You can learn it without risking your own money.</span></p>
+      <div class="actions">
+        <a class="btn btn--money btn--lg" data-l="ru" href="https://marketgame.club/?utm_source=kaizenblueocean&amp;utm_medium=referral&amp;utm_campaign=money_page#calendar" target="_blank" rel="noopener">Расписание и запись на игру</a>
+        <a class="btn btn--money btn--lg" data-l="en" href="https://marketgame.club/en/?utm_source=kaizenblueocean&amp;utm_medium=referral&amp;utm_campaign=money_page#calendar" target="_blank" rel="noopener">Schedule and sign-up</a>
+        <a class="btn btn--ghost btn--lg" href="https://t.me/Nickbv" target="_blank" rel="noopener"><span data-l="ru">Задать вопрос автору</span><span data-l="en">Ask the author</span></a>
+      </div>
+    </div>
+    <figure>
+      <img data-l="ru" src="assets/mg/format.jpg" width="1150" height="647" loading="lazy" alt="Формат Market Game: от 4 до 20 участников, игровой год — 12 месяцев, ход — 3–5 минут, онлайн или офлайн">
+      <img data-l="en" src="assets/mg/format-en.jpg" width="1150" height="647" loading="lazy" alt="Market Game format: 4 to 20 teams, a 12-month game year, 3–5 minute turns, online or offline">
+    </figure>
+  </section>
+
+  <section class="sec sec--tint-money">
+    <div class="sec__in">
+      <h2><span data-l="ru">Узнаёте себя?</span><span data-l="en">Sound familiar?</span></h2>
+      <div class="pains">
+        <article><h3><span data-l="ru">«Мне не хватает денег»</span><span data-l="en">“I don’t have enough money”</span></h3><p><span data-l="ru">Начните с дешёвой ошибки: в игре она стоит очков, а не накоплений.</span><span data-l="en">Start with a cheap mistake: in the game it costs points, not savings.</span></p></article>
+        <article><h3><span data-l="ru">«Работаю только ради выживания»</span><span data-l="en">“I work just to survive”</span></h3><p><span data-l="ru">Посмотрите на рынок глазами владельца: откуда берутся деньги и почему их вечно не хватает.</span><span data-l="en">See the market through an owner’s eyes: where money comes from and why there is never enough.</span></p></article>
+        <article><h3><span data-l="ru">«Хочу своё дело»</span><span data-l="en">“I want my own business”</span></h3><p><span data-l="ru">Пройдите путь от открытия до кассового разрыва за один вечер — до того, как вложите свои деньги.</span><span data-l="en">Go from opening day to a cash gap in one evening, before you invest your own money.</span></p></article>
+        <article><h3><span data-l="ru">«Хочу больше свободы»</span><span data-l="en">“I want more freedom”</span></h3><p><span data-l="ru">Свобода начинается с понимания: что продавать, кому и по какой цене.</span><span data-l="en">Freedom starts with understanding what to sell, to whom and at what price.</span></p></article>
+        <article><h3><span data-l="ru">«Хочу зарабатывать в новых условиях»</span><span data-l="en">“I want to earn in a new world”</span></h3><p><span data-l="ru">Когда у всех одинаковый ИИ-консультант, выигрывает тот, кто умеет играть против живых людей.</span><span data-l="en">When everyone has the same AI consultant, the winner is the one who can play against live people.</span></p></article>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="sec__in split">
+      <div>
+        <h2><span data-l="ru">Почему дефицит — ловушка</span><span data-l="en">Why scarcity is a trap</span></h2>
+        <p><span data-l="ru">Когда денег не хватает, всё внимание уходит на то, чтобы закрыть сегодняшний день. Исследователи называют это туннельным зрением дефицита: нехватка съедает ресурс, нужный для планирования (Муллайнатан и Шафир, «Дефицит»).</span><span data-l="en">When money runs short, all attention goes into getting through today. Researchers call it the tunnel vision of scarcity: lack eats up the capacity you need to plan (Mullainathan and Shafir, “Scarcity”).</span></p>
+        <p><span data-l="ru">Отсюда вынужденный труд и драка за один и тот же пирог. Выход не обязательно в том, чтобы уволиться: сначала нужно научиться видеть рынок иначе.</span><span data-l="en">This is where forced labor and the fight over the same pie come from. The way out is not necessarily to quit: first you need to learn to see the market differently.</span></p>
+      </div>
+      <div>
+        <h2><span data-l="ru">Голубой океан</span><span data-l="en">The blue ocean</span></h2>
+        <p><span data-l="ru">Ким и Моборн, «Стратегия голубого океана»: красный океан — существующий рынок, где конкуренты делят спрос; голубой — новое пространство, где конкуренция перестаёт иметь значение.</span><span data-l="en">Kim and Mauborgne, “Blue Ocean Strategy”: a red ocean is an existing market where competitors split the demand; a blue ocean is a new space where competition stops mattering.</span></p>
+        <p><span data-l="ru">Ключ — инновация ценности: одновременно повышать ценность для клиента и снижать издержки. Цель не в том, чтобы победить соседа, а в том, чтобы драться стало незачем.</span><span data-l="en">The key is value innovation: raise the value for the customer and cut costs at the same time. The goal is not to beat your neighbor but to make fighting pointless.</span></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec sec--tint-money">
+    <div class="sec__in feature">
+      <figure>
+        <img data-l="ru" src="assets/mg/one-market.jpg" width="1150" height="647" loading="lazy" alt="Один рынок на всех: 10 000 клиентов распределяются между ресторанами-участниками">
+        <img data-l="en" src="assets/mg/one-market-en.jpg" width="1150" height="647" loading="lazy" alt="One market for all: 10,000 customers are split among the players’ restaurants">
+      </figure>
+      <div>
+        <p class="label">Market Game</p>
+        <h2><span data-l="ru">Игроки приходят к голубому океану сами</span><span data-l="en">Players find the blue ocean on their own</span></h2>
+        <p><span data-l="ru">Первая игра почти всегда — красный океан: цены вниз, реклама на последние деньги, кассовый разрыв. После нескольких игр команды замечают: выгоднее поднимать качество и держать честную цену — тогда больше зарабатывают все.</span><span data-l="en">The first game is almost always a red ocean: prices go down, the last money goes into ads, a cash gap follows. After a few games, teams notice that raising quality and keeping a fair price pays off, and then everyone earns more.</span></p>
+        <p><span data-l="ru">В версии 5.0 это заложено в модель: спрос растёт и от качества, и от снижения цены. Голубой океан появляется не от кнопки, а от баланса решений всех участников. Это и есть play and learn: вывод не прочитан, а прожит.</span><span data-l="en">Version 5.0 builds this into the model: demand grows both with quality and with lower prices. The blue ocean does not appear at the press of a button; it comes from the balance of every player’s decisions. That is play and learn: the lesson is lived, not read.</span></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="sec__in feature feature--rev">
+      <figure>
+        <img data-l="ru" src="assets/mg/your-company.jpg" width="1150" height="647" loading="lazy" alt="Инструменты игрока: цена, качество, реклама, столики, сотрудники, кредиты, инвестиции">
+        <img data-l="en" src="assets/mg/your-company-en.jpg" width="1024" height="576" loading="lazy" alt="The player’s tools: price, quality, advertising, tables, staff, loans, investment">
+      </figure>
+      <div>
+        <h2><span data-l="ru">Как проходит игра</span><span data-l="en">How the game works</span></h2>
+        <ul class="facts">
+          <li><b><span data-l="ru">4–20 команд</span><span data-l="en">4–20 teams</span></b><span data-l="ru">за одним рынком на 10 000 клиентов</span><span data-l="en">in one market of 10,000 customers</span></li>
+          <li><b>12, 24 <span data-l="ru">или</span><span data-l="en">or</span> 36</b><span data-l="ru">игровых месяцев за одну встречу, ход — 3–5 минут</span><span data-l="en">game months in one session, 3–5 minutes per turn</span></li>
+          <li><b><span data-l="ru">Около двух часов</span><span data-l="en">About two hours</span></b><span data-l="ru">онлайн или офлайн</span><span data-l="en">online or offline</span></li>
+          <li><b><span data-l="ru">Три языка</span><span data-l="en">Three languages</span></b><span data-l="ru">ведущего: русский, английский, вьетнамский</span><span data-l="en">for the host: Russian, English, Vietnamese</span></li>
+        </ul>
+        <p><span data-l="ru">Каждый ход команда ставит цену, вкладывается в качество, выбирает рекламу, добавляет столики, нанимает людей и берёт кредиты. Модель рынка распределяет клиентов, и команда получает отчёт: выручка, расходы, прибыль, деньги в кассе.</span><span data-l="en">Each turn a team sets its price, invests in quality, picks advertising, adds tables, hires staff and takes loans. The market model splits the customers, and the team gets a report: revenue, costs, profit, cash on hand.</span></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec sec--tint-money">
+    <div class="sec__in">
+      <h2><span data-l="ru">Какая лига вам подходит</span><span data-l="en">Which league fits you</span></h2>
+      <div class="leagues">
+        <article>
+          <p class="label"><span data-l="ru">Лига 12 · Старт</span><span data-l="en">League 12 · Start</span></p>
+          <h3><span data-l="ru">Бизнеса ещё нет</span><span data-l="en">No business yet</span></h3>
+          <p><span data-l="ru">Понять цену типичных ошибок раньше, чем заплатить за них своими деньгами.</span><span data-l="en">Learn the cost of typical mistakes before you pay for them with your own money.</span></p>
+          <a class="btn btn--money" data-l="ru" href="https://marketgame.club/?utm_source=kaizenblueocean&amp;utm_medium=referral&amp;utm_campaign=money_page&amp;utm_content=start#calendar" target="_blank" rel="noopener">Выбрать игру</a>
+          <a class="btn btn--money" data-l="en" href="https://marketgame.club/en/?utm_source=kaizenblueocean&amp;utm_medium=referral&amp;utm_campaign=money_page&amp;utm_content=start#calendar" target="_blank" rel="noopener">Pick a game</a>
+        </article>
+        <article>
+          <p class="label"><span data-l="ru">Лига 24 · Рост</span><span data-l="en">League 24 · Growth</span></p>
+          <h3><span data-l="ru">Дело уже работает</span><span data-l="en">Your business is running</span></h3>
+          <p><span data-l="ru">До 10 сотрудников и оборот до $1 млн в год. Проверить стратегию на длинной дистанции.</span><span data-l="en">Up to 10 employees and up to $1M in annual revenue. Test your strategy over a longer run.</span></p>
+          <a class="btn btn--money" data-l="ru" href="https://marketgame.club/?utm_source=kaizenblueocean&amp;utm_medium=referral&amp;utm_campaign=money_page&amp;utm_content=growth#calendar" target="_blank" rel="noopener">Выбрать игру</a>
+          <a class="btn btn--money" data-l="en" href="https://marketgame.club/en/?utm_source=kaizenblueocean&amp;utm_medium=referral&amp;utm_campaign=money_page&amp;utm_content=growth#calendar" target="_blank" rel="noopener">Pick a game</a>
+        </article>
+        <article>
+          <p class="label"><span data-l="ru">Лига 36 · Элита</span><span data-l="en">League 36 · Elite</span></p>
+          <h3><span data-l="ru">Средний и крупный бизнес</span><span data-l="en">Medium and large business</span></h3>
+          <p><span data-l="ru">Стратегическая сессия с расширенным разбором для собственника.</span><span data-l="en">A strategy session with an extended debrief for the owner.</span></p>
+          <a class="btn btn--money" data-l="ru" href="https://marketgame.club/?utm_source=kaizenblueocean&amp;utm_medium=referral&amp;utm_campaign=money_page&amp;utm_content=elite#calendar" target="_blank" rel="noopener">Выбрать игру</a>
+          <a class="btn btn--money" data-l="en" href="https://marketgame.club/en/?utm_source=kaizenblueocean&amp;utm_medium=referral&amp;utm_campaign=money_page&amp;utm_content=elite#calendar" target="_blank" rel="noopener">Pick a game</a>
+        </article>
+      </div>
+      <p class="note"><span data-l="ru">Цены и ближайшие даты — на сайте игры; расписание показано в вашем часовом поясе.</span><span data-l="en">Prices and upcoming dates are on the game’s site; the schedule is shown in your time zone.</span></p>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="lagom">
+      <p class="lagom__word"><span data-l="ru">Лагом</span><span data-l="en">Lagom</span></p>
+      <div class="prose">
+        <p class="label"><span data-l="ru">В самый раз</span><span data-l="en">Just right</span></p>
+        <h2><span data-l="ru">Достаток — от «достаточно»</span><span data-l="en">Prosperity means enough</span></h2>
+        <p><span data-l="ru">Шведское «лагом» — не слишком мало и не слишком много. Деньги важны, пока закрывают базовые потребности и дают свободу выбора; дальше каждый следующий рубль даёт всё меньше (Jebb и соавт., 2018). Те, кто всегда ищет максимум, в среднем менее счастливы, чем те, кому достаточно хорошего (Schwartz и соавт., 2002). И в игре выигрывает не самая низкая и не самая высокая цена, а баланс.</span><span data-l="en">The Swedish “lagom” means not too little and not too much. Money matters while it covers basic needs and gives freedom of choice; beyond that each extra dollar gives less and less (Jebb et al., 2018). People who always look for the maximum are on average less happy than those who settle for good enough (Schwartz et al., 2002). And in the game it is not the lowest or the highest price that wins, but balance.</span></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec sec--tint-money">
+    <div class="sec__in author">
+      <img src="assets/img/author.webp" width="720" height="960" loading="lazy" data-alt-ru="Николай Буленков" data-alt-en="Nikolay Bulenkov" alt="Николай Буленков">
+      <div>
+        <p class="label"><span data-l="ru">Автор игры</span><span data-l="en">The author of the game</span></p>
+        <h2><span data-l="ru">Николай Владимирович Буленков</span><span data-l="en">Nikolay Bulenkov</span></h2>
+        <p><span data-l="ru">Инженер (МГТУ им. Н. Э. Баумана), больше двадцати лет в продажах, управлении и развитии бизнеса. Создал «Симулятор сделки» — самый полезный инструмент для обучения риэлторов России 2014 года по версии МАУА. Директор по продажам Like Центра (Аяз Шабутдинов) в 2017–2019 годах, руководитель обучающего центра проекта «33 слона» в Mail.ru Group в 2019–2021 годах.</span><span data-l="en">An engineer (Bauman Moscow State Technical University) with more than twenty years in sales, management and business development. Created “Deal Simulator”, named the most useful training tool for realtors in Russia in 2014 by MAUA. Sales director at Like Centre (Ayaz Shabutdinov) in 2017–2019, head of the training centre of the “33 Slona” project at Mail.ru Group in 2019–2021.</span></p>
+        <div class="actions"><a class="btn btn--ghost" href="https://t.me/Nickbv" target="_blank" rel="noopener"><span data-l="ru">Написать автору</span><span data-l="en">Message the author</span></a></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta-band cta-band--money">
+    <div class="sec__in">
+      <h2><span data-l="ru">Проверьте стратегию на живом рынке</span><span data-l="en">Test your strategy on a live market</span></h2>
+      <p><span data-l="ru">До того, как заплатите за ошибки своими деньгами.</span><span data-l="en">Before you pay for mistakes with your own money.</span></p>
+      <div class="actions">
+        <a class="btn btn--money btn--lg" data-l="ru" href="https://marketgame.club/?utm_source=kaizenblueocean&amp;utm_medium=referral&amp;utm_campaign=money_page&amp;utm_content=final#calendar" target="_blank" rel="noopener">Расписание и запись на игру</a>
+        <a class="btn btn--money btn--lg" data-l="en" href="https://marketgame.club/en/?utm_source=kaizenblueocean&amp;utm_medium=referral&amp;utm_campaign=money_page&amp;utm_content=final#calendar" target="_blank" rel="noopener">Schedule and sign-up</a>
+        <a class="btn btn--ghost btn--lg" href="#top"><span data-l="ru">← На главную</span><span data-l="en">← Home</span></a>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ═══════════════════ ЛЮБОВЬ ═══════════════════ -->
+<div class="view" data-view="love" hidden>
+  <section class="page-hero page-hero--love">
+    <div class="page-hero__text">
+      <p class="crumbs"><a href="#top"><span data-l="ru">Главная</span><span data-l="en">Home</span></a> / <span data-l="ru">Любовь</span><span data-l="en">Love</span></p>
+      <p class="label"><span class="dot dot--love"></span><span data-l="ru">Любовь · Kaizen</span><span data-l="en">Love · Kaizen</span></p>
+      <h1><span data-l="ru">Выручку можно посчитать. А любовь?</span><span data-l="en">You can count revenue. What about love?</span></h1>
+      <p class="lead"><span data-l="ru">«Поток любви. Инструкция по эксплуатации» — книга инженера о том, что происходит между двумя людьми: из чего устроен контакт, как проверить, согласован ли он, и как из отдельных согласованных действий складывается поток любви.</span><span data-l="en">“Flow of Love. Operating Manual” is an engineer’s book about what happens between two people: what contact is made of, how to check whether it is matched, and how separate matched actions add up to a flow of love.</span></p>
+      <div class="actions">
+        <a class="btn btn--love btn--lg" href="https://raw.githubusercontent.com/ph001player1-lab/kaizenblueocean.homes/claude/zealous-dirac-yrij3p/materials/potok-lyubvi.pdf" target="_blank" rel="noopener"><span data-l="ru">Скачать книгу (PDF)</span><span data-l="en">Download the book (PDF)</span></a>
+        <a class="btn btn--ghost btn--lg" href="https://docs.google.com/document/d/1nue2fJzhALl1OZwp51XvarfwrpdZXQdk/edit?usp=sharing&amp;ouid=111378171419796986829&amp;rtpof=true&amp;sd=true" target="_blank" rel="noopener"><span data-l="ru">Читать и комментировать</span><span data-l="en">Read and comment</span></a>
+      </div>
+      <p class="note"><span data-l="ru">89 страниц · на русском · бесплатно</span><span data-l="en">89 pages · in Russian · free · English edition coming</span></p>
+    </div>
+    <figure><img src="assets/img/book.webp" width="720" height="1080" loading="lazy" data-alt-ru="Обложка книги «Поток любви. Инструкция по эксплуатации»" data-alt-en="Cover of “Flow of Love. Operating Manual”" alt="Обложка книги «Поток любви. Инструкция по эксплуатации»"></figure>
+  </section>
+
+  <section class="sec sec--tint-love">
+    <div class="sec__in">
+      <h2><span data-l="ru">Что вы слышите в своих отношениях?</span><span data-l="en">What do you hear in your relationship?</span></h2>
+      <p class="sec__lead"><span data-l="ru">Фразы из таблицы «Типичные неисправности». Книга устроена как техническая документация: признак, вероятная причина, первое действие.</span><span data-l="en">Phrases from the book’s “Typical faults” table. The book is built like technical documentation: symptom, likely cause, first action.</span></p>
+      <div class="pains">
+        <article><h3><span data-l="ru">«Я ему всё, а ему хоть бы что»</span><span data-l="en">“I give him everything, and he doesn’t care”</span></h3><p><span data-l="ru">Вклад не принимается и возвращается к тому, кто даёт. Не наращивайте вклад: сначала разберитесь, почему прекратить давать труднее, чем изнашиваться.</span><span data-l="en">The contribution is not accepted and comes back to the giver. Don’t give more: first find out why stopping is harder than wearing yourself out.</span></p></article>
+        <article><h3><span data-l="ru">«Он меня не слышит» — и так с обеих сторон</span><span data-l="en">“He doesn’t hear me”, from both sides at once</span></h3><p><span data-l="ru">Оба говорят, и приём закрыт у обоих. Одному стоит перейти на приём: громкость только ухудшает.</span><span data-l="en">Both are talking, and neither is receiving. One of you should switch to listening: raising your voice only makes it worse.</span></p></article>
+        <article><h3><span data-l="ru">«Вроде всё нормально, а чего-то не хватает»</span><span data-l="en">“Everything seems fine, but something is missing”</span></h3><p><span data-l="ru">Оба ждут, что начнёт другой, и канал пуст. Начать стоит тому, кто это заметил.</span><span data-l="en">Each waits for the other to start, and the channel is empty. Whoever noticed it should start.</span></p></article>
+        <article><h3><span data-l="ru">«Мы отдалились, и непонятно когда»</span><span data-l="en">“We drifted apart and don’t know when”</span></h3><p><span data-l="ru">Встреч стало меньше без всякого события. Сосчитайте их за месяц и за прошлый год и назначайте контакты сознательно: само не восстановится.</span><span data-l="en">You meet less, with no event behind it. Count the times over the last month and the last year, and plan contact on purpose: it won’t come back by itself.</span></p></article>
+        <article><h3><span data-l="ru">«Я всё для тебя делаю» — «Мне это не нужно»</span><span data-l="en">“I do everything for you” — “I don’t need it”</span></h3><p><span data-l="ru">Заботятся не тем, чего ждут. Спросите прямо, что нужно, и меняйте не старание, а «диапазон».</span><span data-l="en">The care given is not the care expected. Ask directly what is needed and change the “frequency”, not the effort.</span></p></article>
+        <article><h3><span data-l="ru">«Нам было так хорошо, что я растворился»</span><span data-l="en">“It was so good that I dissolved”</span></h3><p><span data-l="ru">Хорошего стало слишком много. Восстанавливайте остальные связи: это не измена текущей.</span><span data-l="en">Too much of a good thing. Restore your other connections: it is not a betrayal of this one.</span></p></article>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="sec__in split">
+      <div>
+        <h2><span data-l="ru">Слово одно — определения разные</span><span data-l="en">One word, different definitions</span></h2>
+        <p><span data-l="ru">«Тридцать лет я спрашивал людей, что такое любовь, и получал принципиально разные ответы». Один говорит «доброта», второй — «страсть», третий — «чтобы не предавал». Двое живут под одной крышей, оба любят и каждый день доказывают друг другу, что второй любит неправильно.</span><span data-l="en">“For thirty years I asked people what love is and got fundamentally different answers.” One says kindness, another passion, a third “that he never betrays me”. Two people live under one roof, both love, and every day each proves that the other loves the wrong way.</span></p>
+        <p><span data-l="ru">Книга показывает: определения расходятся не содержанием, а координатой. Чувство — строка, поступок — столбец. Спорить, что важнее, — то же, что спорить, что важнее в адресе: улица или номер дома.</span><span data-l="en">The book shows that definitions differ not in content but in coordinate. A feeling is a row, an action is a column. Arguing which matters more is like arguing which matters more in an address: the street or the house number.</span></p>
+      </div>
+      <div>
+        <h2><span data-l="ru">Действие по любви</span><span data-l="en">An act of love</span></h2>
+        <blockquote class="quote"><span data-l="ru">«Действие по любви — это когда оба что-то делают друг для друга, делают взаимно подходящее, оба этого хотят, оба на это согласны и никто со стороны не запрещает».</span><span data-l="en">“An act of love is when both do something for each other, do what suits each other, both want it, both agree to it, and no one outside forbids it.”</span></blockquote>
+        <p><span data-l="ru">Одно действие — ещё не любовь. Значение имеет то, что повторяется: поток. У него есть состав, интенсивность и чистота — доля времени, которая приходится на действия по любви. Поэтому улучшение становится заметным, а значит, возможен Kaizen.</span><span data-l="en">One act is not yet love. What matters is what repeats: the flow. It has a composition, an intensity and a purity, the share of time taken by acts of love. That makes improvement visible, and so Kaizen becomes possible.</span></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec sec--tint-love">
+    <div class="sec__in">
+      <h2><span data-l="ru">Что внутри книги</span><span data-l="en">What’s inside the book</span></h2>
+      <ul class="toc">
+        <li><b><span data-l="ru">Из чего устроен контакт</span><span data-l="en">What contact is made of</span></b><span data-l="ru">Что переходит между людьми — информация, ресурс, состояние — и что с этим делают: берут, дают, обмениваются, создают новое.</span><span data-l="en">What passes between people (information, resources, state) and what they do with it: take, give, exchange, create something new.</span></li>
+        <li><b><span data-l="ru">Откуда берётся износ</span><span data-l="en">Where wear comes from</span></b><span data-l="ru">Почему отношения устают, даже когда никто не виноват, и кто на самом деле платит за несогласованность.</span><span data-l="en">Why relationships get tired even when no one is to blame, and who actually pays for the mismatch.</span></li>
+        <li><b><span data-l="ru">Формула и поток</span><span data-l="en">The formula and the flow</span></b><span data-l="ru">Как из согласованных действий складывается поток любви и почему любовь не передаётся, а исполняется.</span><span data-l="en">How matched actions add up to a flow of love, and why love is not handed over but performed.</span></li>
+        <li><b><span data-l="ru">Типичные неисправности</span><span data-l="en">Typical faults</span></b><span data-l="ru">Таблица признаков и первых действий — как в технической документации.</span><span data-l="en">A table of symptoms and first actions, as in technical documentation.</span></li>
+        <li><b><span data-l="ru">Как найти своего человека</span><span data-l="en">How to find your person</span></b><span data-l="ru">Шесть осей совместимости и сколько людей на самом деле приходится просмотреть.</span><span data-l="en">Six axes of compatibility and how many people you actually need to meet.</span></li>
+        <li><b><span data-l="ru">Техника безопасности</span><span data-l="en">Safety rules</span></b><span data-l="ru">Где модель не работает и когда нужна не схема, а помощь.</span><span data-l="en">Where the model does not apply and when you need help, not a diagram.</span></li>
+      </ul>
+      <div class="actions"><a class="btn btn--love" href="https://raw.githubusercontent.com/ph001player1-lab/kaizenblueocean.homes/claude/zealous-dirac-yrij3p/materials/potok-lyubvi.pdf" target="_blank" rel="noopener"><span data-l="ru">Скачать книгу (PDF)</span><span data-l="en">Download the book (PDF)</span></a></div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="sec__in feature">
+      <div class="stat"><b>1938</b><span><span data-l="ru">год начала Гарвардского исследования развития взрослых</span><span data-l="en">the year the Harvard Study of Adult Development began</span></span></div>
+      <div>
+        <p class="label"><span data-l="ru">Самое длинное исследование счастья</span><span data-l="en">The longest study of happiness</span></p>
+        <h2><span data-l="ru">«Хорошие отношения делают нас счастливее и здоровее. Точка»</span><span data-l="en">“Good relationships keep us happier and healthier. Period.”</span></h2>
+        <p><span data-l="ru">С 1938 года Гарвард наблюдает 724 мужчин — студентов университета и подростков из бедных районов Бостона, а теперь и больше 1 300 их детей. Самые довольные своими отношениями в 50 лет оказались самыми здоровыми в 80: это предсказывало старость точнее, чем холестерин.</span><span data-l="en">Since 1938, Harvard has followed 724 men, university students and teenagers from poor Boston neighborhoods, and now more than 1,300 of their children. Those most satisfied with their relationships at 50 were the healthiest at 80, a better predictor of old age than cholesterol.</span></p>
+        <p><span data-l="ru">Руководители исследования называют это «социальной формой»: отношениям, как телу, нужны регулярные упражнения. Это и есть Kaizen — маленькие шаги, которые повторяются.</span><span data-l="en">The study’s directors call it “social fitness”: relationships, like the body, need regular exercise. That is Kaizen: small steps, repeated.</span></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec sec--tint-love">
+    <div class="lagom">
+      <p class="lagom__word"><span data-l="ru">Лагом</span><span data-l="en">Lagom</span></p>
+      <div class="prose">
+        <p class="label"><span data-l="ru">В самый раз</span><span data-l="en">Just right</span></p>
+        <h2><span data-l="ru">У близости тоже есть оптимум</span><span data-l="en">Closeness has an optimum too</span></h2>
+        <p><span data-l="ru">«Чистота, равная единице, недостижима и не является целью», — пишет автор. Хорошее не бесконечно: у него есть пик, после которого продолжение даёт всё меньше и стоит всё дороже. Выходить стоит вскоре после пика, а не когда надоест.</span><span data-l="en">“A purity of one is unattainable and is not the goal,” the author writes. Good things are not endless: they have a peak, after which more gives less and costs more. It is better to leave soon after the peak, not when you are tired of it.</span></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="sec__in split">
+      <div>
+        <h2><span data-l="ru">Честно о книге</span><span data-l="en">About the book, honestly</span></h2>
+        <p><span data-l="ru">Это теоретическая модель с набором проверяемых гипотез. Работа выполнена вне института и пока не проходила рецензирования. Психологическая и социологическая часть — обзор литературы и проверка источников — подготовлена в сотрудничестве с языковой моделью Claude (Anthropic); это прямо сказано в книге.</span><span data-l="en">It is a theoretical model with a set of testable hypotheses. The work was done outside any institution and has not yet been peer reviewed. The psychology and sociology part (literature review and source checks) was prepared together with the language model Claude (Anthropic), as the book states openly.</span></p>
+        <p><span data-l="ru">Комментарии в книге открыты. Если вы исследователь, психолог или просто внимательный читатель — помогите развивать теорию.</span><span data-l="en">Comments in the book are open. If you are a researcher, a psychologist or simply a careful reader, help develop the theory.</span></p>
+        <div class="actions"><a class="btn btn--ghost" href="https://docs.google.com/document/d/1nue2fJzhALl1OZwp51XvarfwrpdZXQdk/edit?usp=sharing&amp;ouid=111378171419796986829&amp;rtpof=true&amp;sd=true" target="_blank" rel="noopener"><span data-l="ru">Комментировать в Google Docs</span><span data-l="en">Comment in Google Docs</span></a></div>
+      </div>
+      <div>
+        <h2><span data-l="ru">Ищете своего человека?</span><span data-l="en">Looking for your person?</span></h2>
+        <p><span data-l="ru">«Найти подходящего человека — задача минимизации трения. Строить поток — задача согласованного взаимодействия». Для первой задачи есть «Шесть из шести»: шесть вопросов о главном — где жить, как жить вместе, как зарабатывать, во что верить, — и сразу видно, с кем вы сойдётесь без спора.</span><span data-l="en">“Finding a suitable person is a task of reducing friction. Building a flow is a task of matched interaction.” For the first task there is “Six of Six”: six questions about the essentials (where to live, how to live together, how to earn, what to believe), and you see at once whom you will agree with without a fight.</span></p>
+        <p class="note"><span data-l="ru">Работает при личной встрече: сканируете QR-код, и совпадение видно мгновенно. Приложение на русском, другие языки в разработке.</span><span data-l="en">It works when you meet in person: scan a QR code and see the match instantly. The app is in Russian; other languages are in development.</span></p>
+        <div class="actions"><a class="btn btn--ghost" href="https://t.me/FastNetwork6x6" target="_blank" rel="noopener"><span data-l="ru">Открыть «Шесть из шести»</span><span data-l="en">Open “Six of Six”</span></a></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec sec--flush">
+    <div class="sec__in"><p class="safety"><span data-l="ru">Если в отношениях есть насилие — вас бьют, запугивают, вы не можете уйти или рядом ребёнок, которому плохо, — разбор откладывается. Нужна помощь: <a href="https://findahelpline.com/" target="_blank" rel="noopener">найдите службу поддержки в вашей стране</a>.</span><span data-l="en">If there is violence in the relationship (you are hit, threatened, cannot leave, or a child nearby is suffering), set the analysis aside. You need help: <a href="https://findahelpline.com/" target="_blank" rel="noopener">find a helpline in your country</a>.</span></p></div>
+  </section>
+
+  <section class="sec sec--tint-love">
+    <div class="sec__in author">
+      <img src="assets/img/author.webp" width="720" height="960" loading="lazy" data-alt-ru="Николай Буленков" data-alt-en="Nikolay Bulenkov" alt="Николай Буленков">
+      <div>
+        <p class="label"><span data-l="ru">Автор книги</span><span data-l="en">The author</span></p>
+        <h2><span data-l="ru">Николай Владимирович Буленков</span><span data-l="en">Nikolay Bulenkov</span></h2>
+        <p><span data-l="ru">Инженер связи по образованию (МГТУ им. Н. Э. Баумана, радиоэлектроника) и независимый исследователь. Инженер задаёт о любом канале три вопроса: что по нему идёт, согласован ли он, разрешена ли полоса. Из этих вопросов выросла книга.</span><span data-l="en">A communications engineer by training (Bauman Moscow State Technical University, radio electronics) and an independent researcher. An engineer asks three questions about any channel: what flows through it, whether it is matched, whether the band is allowed. This book grew out of those questions.</span></p>
+        <div class="actions"><a class="btn btn--ghost" href="https://t.me/DCL832/304" target="_blank" rel="noopener"><span data-l="ru">Канал автора в Telegram</span><span data-l="en">Author’s Telegram channel</span></a></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta-band cta-band--love">
+    <div class="sec__in">
+      <h2><span data-l="ru">Kaizen для отношений начинается с одного разговора</span><span data-l="en">Kaizen for relationships starts with one conversation</span></h2>
+      <p><span data-l="ru">Скачайте книгу и найдите в ней свою «неисправность».</span><span data-l="en">Download the book and find your “fault” in it.</span></p>
+      <div class="actions">
+        <a class="btn btn--love btn--lg" href="https://raw.githubusercontent.com/ph001player1-lab/kaizenblueocean.homes/claude/zealous-dirac-yrij3p/materials/potok-lyubvi.pdf" target="_blank" rel="noopener"><span data-l="ru">Скачать «Поток любви»</span><span data-l="en">Download “Flow of Love”</span></a>
+        <a class="btn btn--ghost btn--lg" href="https://docs.google.com/document/d/1nue2fJzhALl1OZwp51XvarfwrpdZXQdk/edit?usp=sharing&amp;ouid=111378171419796986829&amp;rtpof=true&amp;sd=true" target="_blank" rel="noopener"><span data-l="ru">Читать и комментировать</span><span data-l="en">Read and comment</span></a>
+      </div>
+    </div>
+  </section>
+</div>
 </main>
 
 <footer class="foot">
-  <div class="wrap">
-    <p data-i18n="f_author">Автор — Николай Владимирович Буленков, инженер и независимый исследователь.</p>
+  <div class="foot__in">
+    <p><span data-l="ru">Автор — Николай Владимирович Буленков, инженер и независимый исследователь.</span><span data-l="en">Author: Nikolay Bulenkov, engineer and independent researcher.</span></p>
     <div class="contacts">
-      <a href="https://t.me/DCL832" target="_blank" rel="noopener"><span data-i18n="f_channel">Канал</span><code>t.me/DCL832</code></a>
+      <a href="https://t.me/DCL832" target="_blank" rel="noopener"><span><span data-l="ru">Канал</span><span data-l="en">Channel</span></span><code>t.me/DCL832</code></a>
       <a href="https://t.me/Nickbv" target="_blank" rel="noopener"><span>Telegram</span><code>@Nickbv</code></a>
       <a href="https://wa.me/66823204796" target="_blank" rel="noopener"><span>WhatsApp</span><code>+66 82 320 4796</code></a>
       <a href="https://line.me/ti/p/~62803839" target="_blank" rel="noopener"><span>LINE</span><code>62803839</code></a>
     </div>
-    <p data-i18n="f_note">Прототип главного экрана · сентябрь 2026</p>
+    <p><span data-l="ru">Прототип · сентябрь 2026</span><span data-l="en">Prototype · September 2026</span></p>
   </div>
 </footer>
 

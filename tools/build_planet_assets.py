@@ -15,11 +15,9 @@
   clouds-2k.jpg            облака, одноканальные
   water-2k.png             маска воды: 255 — вода, 0 — суша
   heat-1k.png              плотность населения — из неё «красные очаги»
-  links.json               пары городов: дальние дуги и ближние нити
 """
 import json
 import math
-import random
 import sys
 import urllib.request
 from pathlib import Path
@@ -177,50 +175,6 @@ def build_heat(places, water):
     print(f'{"heat-1k.png":16} 1024×512   {(OUT / "heat-1k.png").stat().st_size // 1024} КБ')
 
 
-def distance_km(a, b):
-    la1, lo1, la2, lo2 = map(math.radians, (a['lat'], a['lon'], b['lat'], b['lon']))
-    d = math.sin((la2 - la1) / 2) ** 2 + math.cos(la1) * math.cos(la2) * math.sin((lo2 - lo1) / 2) ** 2
-    return 2 * 6371.0 * math.asin(min(1.0, math.sqrt(d)))
-
-
-def build_links(places):
-    rnd = random.Random(1938)  # год начала Гарвардского исследования
-    by_pop = sorted(places, key=lambda c: -c['pop'])
-
-    # Дальние дуги Blue Ocean: крупнейшие города, не больше трёх на страну.
-    hubs, per_country = [], {}
-    for c in by_pop:
-        if per_country.get(c['country'], 0) >= 3:
-            continue
-        per_country[c['country']] = per_country.get(c['country'], 0) + 1
-        hubs.append(c)
-        if len(hubs) == 64:
-            break
-    arcs = set()
-    for i, a in enumerate(hubs):
-        options = [j for j, b in enumerate(hubs) if j != i and 2500 < distance_km(a, b) < 11000]
-        for j in rnd.sample(options, min(2, len(options))):
-            arcs.add(tuple(sorted((i, j))))
-    arcs = [(hubs[i], hubs[j]) for i, j in sorted(arcs)]
-
-    # Ближние нити Kaizen: каждый город от 300 тыс. — к двум ближайшим соседям.
-    towns = [c for c in by_pop if c['pop'] >= 300_000]
-    threads = set()
-    for i, a in enumerate(towns):
-        near = sorted((distance_km(a, b), j) for j, b in enumerate(towns) if j != i)
-        near = [(d, j) for d, j in near if 60 < d < 750][:2]
-        for d, j in near:
-            threads.add(tuple(sorted((i, j))))
-    threads = [(towns[i], towns[j]) for i, j in sorted(threads)]
-
-    pack = lambda pairs: [[round(a['lat'], 2), round(a['lon'], 2), round(b['lat'], 2), round(b['lon'], 2)]
-                          for a, b in pairs]
-    data = {'arcs': pack(arcs), 'threads': pack(threads)}
-    with open(OUT / 'links.json', 'w') as f:
-        json.dump(data, f, separators=(',', ':'))
-    print(f'{"links.json":16} дуг {len(arcs)}, нитей {len(threads)}  {(OUT / "links.json").stat().st_size // 1024} КБ')
-
-
 def main():
     fetch()
     OUT.mkdir(parents=True, exist_ok=True)
@@ -230,7 +184,6 @@ def main():
     water = build_water()
     places = load_places()
     build_heat(places, water)
-    build_links(places)
 
 
 if __name__ == '__main__':
