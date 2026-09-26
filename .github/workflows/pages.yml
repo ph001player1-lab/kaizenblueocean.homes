@@ -1,0 +1,40 @@
+# Публикация сайта kaizenblueocean.homes на GitHub Pages.
+# Каждый пуш в основную ветку собирает сайт из src/ (tools/build_site.py)
+# и выкладывает папку _site. Запустить вручную: Actions → Publish site → Run workflow.
+name: Publish site
+
+on:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    if: github.ref_name == github.event.repository.default_branch
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Build the site
+        run: python3 tools/build_site.py
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
