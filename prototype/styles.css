@@ -35,7 +35,8 @@ body {
   font: 16px/1.6 var(--text);
   -webkit-font-smoothing: antialiased;
 }
-html[lang="ru"] [data-l="en"], html[lang="en"] [data-l="ru"] { display: none !important; }
+/* Без атрибута lang (пока скрипт не отработал) показываем русский. */
+html:not([lang="en"]) [data-l="en"], html[lang="en"] [data-l="ru"] { display: none !important; }
 img { max-width: 100%; height: auto; display: block; }
 a { color: inherit; text-underline-offset: 3px; }
 :focus-visible { outline: 2px solid var(--ocean); outline-offset: 3px; border-radius: 4px; }
