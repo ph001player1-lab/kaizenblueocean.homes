@@ -18,6 +18,7 @@
   --gold-ink: #9a620a;
   --love-soft: #faf5e9;
   --fever: #c8372a;
+  --amber: #a86a0c;
   --display: 'Unbounded', 'Arial Black', system-ui, sans-serif;
   --text: 'Onest', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --mono: 'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace;
@@ -111,38 +112,35 @@ h1, h2, h3 { text-wrap: balance; }
   opacity: 0; transition: opacity 1.4s ease;
 }
 .hero__canvas.is-ready { opacity: 1; }
-.hero__slot {
-  grid-column: 2; grid-row: 1; justify-self: center;
-  width: min(100%, 76svh); aspect-ratio: 1; pointer-events: none;
-}
+/* Правая колонка: место под планету (её рисует холст под ним) и шкала здоровья. */
+.hero__art { grid-column: 2; grid-row: 1; position: relative; z-index: 1; display: grid; justify-items: center; gap: 6px; }
+.hero__slot { width: min(100%, 70svh); aspect-ratio: 1; pointer-events: none; }
 .hero__copy { grid-column: 1; grid-row: 1; position: relative; z-index: 1; display: flex; flex-direction: column; gap: 22px; }
 .eyebrow { margin: 0; font: 500 12px/1.4 var(--mono); letter-spacing: 0.22em; text-transform: uppercase; color: var(--ocean); }
 .hero h1 { margin: 0; font: 700 clamp(2rem, 4.3vw, 3.5rem)/1.04 var(--display); letter-spacing: -0.02em; }
-.lead { margin: 0; max-width: 36ch; font-size: clamp(1rem, 1.3vw, 1.15rem); color: var(--slate); }
+.lead { margin: 0; max-width: 40ch; font-size: clamp(1rem, 1.3vw, 1.15rem); color: var(--slate); }
 
-/* Кнопки — в первой строке сетки, ссылки «Как это работает» — во второй:
-   так кнопки одной высоты, даже если подпись одной из них в две строки. */
-.switches { display: grid; grid-template-columns: 1fr 1fr; column-gap: 12px; }
-.switch-cell { display: contents; }
-.switch--kaizen { grid-area: 1 / 1; }
-.switch--blue { grid-area: 1 / 2; }
-#more-kaizen { grid-area: 2 / 1; margin-top: 8px; }
-#more-blue { grid-area: 2 / 2; margin-top: 8px; }
+/* Кнопки: пронумерованы, над следующей — подсказка «Нажмите». */
+.switches { position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding-top: 34px; }
 .switch {
   --dir: var(--ink);
-  position: relative; display: grid; gap: 4px; width: 100%; text-align: left; cursor: pointer;
-  padding: 16px 16px 15px; color: var(--ink);
-  background: rgba(255, 255, 255, 0.78); border: 1px solid var(--line); border-radius: 12px;
+  position: relative; display: grid; gap: 3px; align-content: start; width: 100%; text-align: left; cursor: pointer;
+  padding: 14px 64px 14px 14px; color: var(--ink); font: inherit;
+  background: rgba(255, 255, 255, 0.85); border: 1px solid var(--line); border-radius: 12px;
   -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
   transition: border-color 0.4s, box-shadow 0.4s, background 0.4s;
 }
 .switch--kaizen { --dir: var(--gold); --track: linear-gradient(90deg, var(--leaf), var(--gold)); }
 .switch--blue { --dir: var(--ocean); --track: var(--ocean); }
 .switch:hover { border-color: rgba(14, 26, 43, 0.3); }
-.switch__name { font: 600 14px/1.2 var(--display); letter-spacing: 0.1em; text-transform: uppercase; }
-.switch__verb { font-size: 14px; color: var(--slate); padding-right: 50px; }
+.switch__name { font: 700 17px/1.25 var(--display); }
+.switch__num {
+  display: inline-grid; place-items: center; width: 22px; height: 22px; margin-right: 8px; vertical-align: 2px;
+  border-radius: 50%; background: var(--ink); color: var(--white); font: 600 12px/1 var(--mono);
+}
+.switch__verb { font-size: 13px; line-height: 1.35; color: var(--slate); }
 .switch__track {
-  position: absolute; bottom: 14px; right: 14px; width: 40px; height: 22px; border-radius: 999px;
+  position: absolute; top: 50%; right: 14px; margin-top: -11px; width: 40px; height: 22px; border-radius: 999px;
   background: rgba(14, 26, 43, 0.12); transition: background 0.4s;
 }
 .switch__knob {
@@ -154,52 +152,92 @@ h1, h2, h3 { text-wrap: balance; }
 .switch[aria-pressed="true"] .switch__verb { color: var(--ink); }
 .switch[aria-pressed="true"] .switch__track { background: var(--track); }
 .switch[aria-pressed="true"] .switch__knob { transform: translateX(18px); }
-.switch__more { font-size: 13px; font-weight: 500; text-decoration: none; padding-left: 4px; }
-.switch__more:hover { text-decoration: underline; }
-.switch-cell--kaizen .switch__more { color: var(--gold-ink); }
-.switch-cell--blue .switch__more { color: var(--ocean); }
-.hint .switch { animation: nudge 1.6s ease-in-out 3; }
-.hint .switch--blue { animation-delay: 0.25s; }
+.switch.is-next { animation: nudge 1.6s ease-in-out infinite; }
 @keyframes nudge {
   0%, 100% { box-shadow: 0 0 0 0 rgba(11, 120, 191, 0); }
-  50% { box-shadow: 0 0 0 6px rgba(11, 120, 191, 0.14); }
+  50% { box-shadow: 0 0 0 7px rgba(11, 120, 191, 0.18); }
 }
+.cue {
+  position: absolute; top: 0; left: 0; width: calc(50% - 6px); margin: 0;
+  display: flex; justify-content: center; pointer-events: none;
+  transition: transform 0.45s cubic-bezier(.2, .8, .2, 1), opacity 0.3s;
+}
+.cue[data-at="b"] { transform: translateX(calc(100% + 12px)); }
+.cue[data-at="none"] { opacity: 0; }
+.cue > span {
+  display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px; border-radius: 999px;
+  background: var(--ink); color: var(--white); font: 600 12px/1 var(--text); animation: bob 1.4s ease-in-out infinite;
+}
+.cue > span::after {
+  content: ''; width: 0; height: 0;
+  border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 6px solid var(--white);
+}
+@keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(4px); } }
 @media (prefers-reduced-motion: reduce) {
-  .hint .switch { animation: none; border-color: rgba(11, 120, 191, 0.5); }
-  .hero__canvas, .switch, .switch__knob, .switch__track { transition: none; }
+  .switch.is-next { animation: none; border-color: rgba(11, 120, 191, 0.55); }
+  .cue > span { animation: none; }
+  .hero__canvas, .switch, .switch__knob, .switch__track, .cue { transition: none; }
 }
 
-.state { display: grid; gap: 4px; min-height: 6.2em; transition: opacity 0.18s; }
-.state--swap { opacity: 0; }
-.state__label { margin: 0; font: 500 11px/1.4 var(--mono); letter-spacing: 0.2em; text-transform: uppercase; color: var(--mute); }
-.state__title { margin: 0; font: 600 18px/1.3 var(--display); }
-.state__text { margin: 0; font-size: 15px; color: var(--slate); max-width: 42ch; }
-.state[data-state="s00"] .state__title { color: var(--fever); }
-.state[data-state="s01"] .state__title { color: var(--ocean); }
-.state[data-state="s10"] .state__title { color: var(--gold-ink); }
-.state[data-state="s11"] .state__title { color: var(--leaf); }
-.why { align-self: flex-start; font-size: 14px; font-weight: 500; color: var(--ink); text-decoration: none; border-bottom: 1px solid var(--line); }
+/* Что происходит на планете после каждого нажатия. */
+.explain {
+  display: grid; gap: 8px; padding: 16px 18px;
+  background: rgba(255, 255, 255, 0.9); border: 1px solid var(--line); border-radius: 14px;
+  transition: opacity 0.18s;
+}
+.explain--swap { opacity: 0; }
+.explain__label { margin: 0; font: 500 11px/1.4 var(--mono); letter-spacing: 0.2em; text-transform: uppercase; color: var(--mute); }
+.explain__title { margin: 0; font: 600 18px/1.3 var(--display); }
+.explain[data-state="00"] .explain__title { color: var(--fever); }
+.explain[data-state="10"] .explain__title { color: var(--gold-ink); }
+.explain[data-state="01"] .explain__title { color: var(--ocean); }
+.explain[data-state="11"] .explain__title { color: var(--leaf); }
+.explain__list { margin: 0; padding-left: 18px; display: grid; gap: 4px; font-size: 15px; line-height: 1.5; }
+.explain__meaning { margin: 0; font-size: 15px; color: var(--slate); }
+.explain__next { margin: 0; font-size: 15px; font-weight: 600; color: var(--ocean); }
+.explain__more { margin: 0; display: flex; flex-wrap: wrap; gap: 4px 18px; font-size: 14px; }
+.explain__more:empty { display: none; }
+.explain__more a { font-weight: 500; color: var(--ink); text-decoration: none; border-bottom: 1px solid var(--line); }
+.explain__more a:hover { border-bottom-color: var(--ink); }
+
+/* Шкала здоровья: любовь лечит одну половину, деньги — другую. */
+.health { width: min(100%, 420px); display: grid; gap: 7px; }
+.health__top { margin: 0; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 2px 10px; font-size: 13px; color: var(--slate); }
+.health__top b { font: 700 14px/1.2 var(--display); color: var(--fever); }
+.health[data-level="1"] .health__top b { color: var(--amber); }
+.health[data-level="2"] .health__top b { color: var(--leaf); }
+.health__bar { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; height: 14px; }
+.health__half { position: relative; border-radius: 999px; background: rgba(14, 26, 43, 0.1); overflow: hidden; }
+.health__half::after {
+  content: ''; position: absolute; inset: 0; transform: scaleX(0); transform-origin: left;
+  transition: transform 0.9s cubic-bezier(.2, .8, .2, 1);
+}
+.health__half--love::after { background: linear-gradient(90deg, var(--leaf), var(--gold)); }
+.health__half--money::after { background: var(--ocean); }
+.health__half.is-on::after { transform: scaleX(1); }
+.health__names { margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 4px; font: 500 11px/1.3 var(--mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--mute); }
+@media (prefers-reduced-motion: reduce) { .health__half::after, .explain { transition: none; } }
 
 .nogl { display: none; }
-.no-webgl .nogl {
-  display: block; grid-column: 2; grid-row: 1; align-self: center; justify-self: center; z-index: 1;
-  max-width: 26ch; text-align: center; color: var(--slate); font-size: 14px;
-}
+.no-webgl .nogl { display: block; margin: 0; max-width: 26ch; text-align: center; color: var(--slate); font-size: 14px; }
 .no-webgl .hero__slot {
   background: radial-gradient(circle at 38% 40%, #7fb8e6 0%, #2f6fa6 45%, #0e2a47 72%);
-  border-radius: 50%; width: min(100%, 56svh);
+  border-radius: 50%; width: min(100%, 52svh);
 }
 
 @media (max-width: 860px) {
-  .hero { grid-template-columns: minmax(0, 1fr); gap: 4px; min-height: 0; padding-block: 8px 36px; }
-  .hero__slot { grid-column: 1; grid-row: 1; width: min(100%, 48svh); }
+  .hero { grid-template-columns: minmax(0, 1fr); gap: 16px; min-height: 0; padding-block: 8px 36px; }
+  .hero__art { grid-column: 1; grid-row: 1; }
+  .hero__slot { width: min(100%, 38svh); }
+  .health { width: min(100%, 360px); }
   .hero__copy { grid-column: 1; grid-row: 2; gap: 18px; }
-  .hero .lead { order: 5; }
-  .no-webgl .nogl { grid-column: 1; }
 }
-@media (max-width: 380px) {
-  .switch { padding: 14px 12px 13px; }
-  .switch__name { font-size: 12px; letter-spacing: 0.06em; }
+/* На узком экране номер шага и переключатель — в верхней строке,
+   название и подпись под ними занимают всю ширину. */
+@media (max-width: 480px) {
+  .switch { padding: 12px; }
+  .switch__num { display: grid; margin: 0 0 8px; }
+  .switch__track { top: 12px; right: 12px; margin-top: 0; }
 }
 
 /* ── две главы на главной ──────────────────────────── */

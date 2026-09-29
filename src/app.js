@@ -6,34 +6,82 @@
 //   кнопками;
 // — собранный сайт (tools/build_site.py): у каждой страницы и языка свой
 //   адрес, в файле только одна страница и один язык.
-// На главной — планета, два переключателя и подпись её состояния.
-// Переключатели меняют только планету и никуда не уводят.
+// На главной — планета, две кнопки («Любовь» и «Деньги»), шкала здоровья
+// планеты и объяснение, что изменилось. Кнопки меняют только планету
+// и никуда не уводят; подсказка «Нажмите» стоит над следующей кнопкой.
 
 const PAGES = ['money', 'love'];
 
-// Подписи четырёх состояний планеты: заголовок и текст.
+// Что происходит на планете в каждом из четырёх состояний.
+// Код: первая цифра — «Любовь» (Kaizen), вторая — «Деньги» (Blue Ocean).
 const STATES = {
   ru: {
-    s00: ['Дефицит и принуждение', 'Люди борются за то, чего не хватает. Болеют и воздух, и вода, и земля.'],
-    s01: ['Богатая, но холодная', 'Вода очистилась, ресурсов хватает. Но люди по-прежнему одни — кольцо построено только наполовину.'],
-    s10: ['Тёплая, но бедная', 'Возвращается зелень, растёт близость. Но дефицит всё ещё толкает к борьбе — кольцо построено только наполовину.'],
-    s11: ['Здоровее', 'Кольцо сомкнулось: одна планета, много культур. Больше добровольного, меньше вынужденного — не максимум, а в самый раз.'],
+    '00': {
+      title: 'Планета больна',
+      list: ['Красные очаги — там, где люди выгорают, ссорятся и воюют.', 'Смог, мутная вода и выжженная земля — так выглядит жизнь в нехватке.'],
+      meaning: 'Когда не хватает любви и денег, люди борются за то, чего мало.',
+      next: 'Начните с первой кнопки — «Любовь».',
+    },
+    '10': {
+      title: 'Любви стало больше',
+      list: ['Земля зеленеет, огни городов теплеют: люди заботятся друг о друге и реже остаются одни.', 'Но красные очаги ещё тлеют: без денег люди по-прежнему борются за выживание.'],
+      meaning: 'Kaizen — это улучшать отношения маленькими шагами: больше внимания, заботы и согласия дома.',
+      next: 'Теперь добавьте деньги.',
+    },
+    '01': {
+      title: 'Денег стало больше',
+      list: ['Вода очищается, ресурсов хватает на всех.', 'Но огни холодные и одинокие: деньги без близких людей не делают счастливыми.'],
+      meaning: 'Blue Ocean — это зарабатывать, создавая новое, а не отнимая клиентов у других.',
+      next: 'Теперь добавьте любовь.',
+    },
+    '11': {
+      title: 'Планета выздоравливает',
+      list: ['Воздух и вода чистые, земля зелёная, огни тёплые.', 'Красных очагов почти не осталось: людям незачем воевать за то, чего не хватает.'],
+      meaning: 'Нужно и то и другое: любовь без денег остаётся бедной, деньги без любви — холодными. Не максимум, а в самый раз.',
+      next: '',
+    },
   },
   en: {
-    s00: ['Scarcity and coercion', 'People fight over what they lack. The air, the water and the land are all sick.'],
-    s01: ['Rich, but cold', 'The water is clean and there is enough to go round. But people are still alone: only half of the ring is built.'],
-    s10: ['Warm, but poor', 'The green returns and closeness grows. But scarcity still pushes people to fight: only half of the ring is built.'],
-    s11: ['Healthier', 'The ring is closed: one planet, many cultures. More of what we choose, less of what we are forced into. Not the maximum: just right.'],
+    '00': {
+      title: 'The planet is sick',
+      list: ['Red spots mark where people burn out, quarrel and fight.', 'Smog, murky water and scorched land: this is what life in scarcity looks like.'],
+      meaning: 'When love and money run short, people fight over what little there is.',
+      next: 'Start with the first button: Love.',
+    },
+    '10': {
+      title: 'More love',
+      list: ['The land turns green and city lights grow warm: people care for each other and are alone less often.', 'But the red spots still smoulder: without money, people still fight to survive.'],
+      meaning: 'Kaizen means improving relationships in small steps: more attention, care and agreement at home.',
+      next: 'Now add money.',
+    },
+    '01': {
+      title: 'More money',
+      list: ['The water clears, and there are enough resources for everyone.', 'But the lights are cold and lonely: money without close people does not make anyone happy.'],
+      meaning: 'Blue Ocean means earning by creating something new instead of taking customers from others.',
+      next: 'Now add love.',
+    },
+    '11': {
+      title: 'The planet is healing',
+      list: ['The air and water are clean, the land is green, the lights are warm.', 'Almost no red spots are left: people have no reason to fight over what they lack.'],
+      meaning: 'It takes both: love without money stays poor, money without love stays cold. Not the maximum: just right.',
+      next: '',
+    },
   },
+};
+
+// Шкала здоровья: сколько кнопок нажато.
+const HEALTH = {
+  ru: ['больна', 'наполовину здорова', 'выздоравливает'],
+  en: ['sick', 'half healthy', 'healing'],
 };
 
 const TITLES = {
-  ru: { home: 'Kaizen Blue Ocean · Мир начинается дома', money: 'Деньги · Kaizen Blue Ocean', love: 'Любовь · Kaizen Blue Ocean' },
-  en: { home: 'Kaizen Blue Ocean · Peace begins at home', money: 'Money · Kaizen Blue Ocean', love: 'Love · Kaizen Blue Ocean' },
+  ru: { home: 'Kaizen Blue Ocean · Миру не хватает любви и денег', money: 'Деньги · Kaizen Blue Ocean', love: 'Любовь · Kaizen Blue Ocean' },
+  en: { home: 'Kaizen Blue Ocean · The world lacks love and money', money: 'Money · Kaizen Blue Ocean', love: 'Love · Kaizen Blue Ocean' },
 };
 
-// Кольцо шире диска планеты: его края не должны упираться в текст и в края экрана.
-const RING = 1.26;
+// Ореол атмосферы чуть шире диска: он не должен упираться в текст и в края экрана.
+const HALO = 1.12;
 
 const store = {
   get(key) { try { return JSON.parse(localStorage.getItem(key)); } catch (e) { return null; } },
@@ -50,7 +98,9 @@ const copy = $('.hero__copy');
 const canvas = $('#planet');
 const swK = $('#sw-kaizen');
 const swB = $('#sw-blue');
-const stateBox = $('#state');
+const explain = $('#explain');
+const cue = $('#cue');
+const health = $('#health');
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 // Все страницы в одном файле — значит, это исходник, и переключаем их сами.
@@ -65,7 +115,6 @@ if (langButtons.length) {
 let state = { k: 0, b: 0 };
 const savedState = store.get('kbo.state');
 if (savedState && typeof savedState === 'object') state = { k: savedState.k ? 1 : 0, b: savedState.b ? 1 : 0 };
-let touched = !!(state.k || state.b);
 let view = routed ? null : (document.body.dataset.page || 'home');
 let homeY = 0;
 let planet = null;
@@ -83,32 +132,50 @@ function applyLang() {
   renderState(false);
 }
 
-// ── планета и подписи ────────────────────────────────
+// ── планета, подсказка, шкала и объяснение ───────────
 function renderState(animate = true) {
   if (!hero) return;
-  const code = `s${state.k}${state.b}`;
+  const code = `${state.k}${state.b}`;
   swK.setAttribute('aria-pressed', String(!!state.k));
   swB.setAttribute('aria-pressed', String(!!state.b));
-  $('#more-kaizen').hidden = !state.k;
-  $('#more-blue').hidden = !state.b;
-  $('#why').hidden = !(state.k && state.b);
+  // «Нажмите» — над следующей кнопкой, пока обе не нажаты.
+  const next = !state.k ? 'k' : !state.b ? 'b' : 'none';
+  cue.dataset.at = next;
+  swK.classList.toggle('is-next', next === 'k');
+  swB.classList.toggle('is-next', next === 'b');
+  // Любовь лечит одну половину планеты, деньги — другую.
+  const level = state.k + state.b;
+  health.dataset.level = String(level);
+  $('#health-status').textContent = HEALTH[lang][level];
+  health.querySelector('.health__half--love').classList.toggle('is-on', !!state.k);
+  health.querySelector('.health__half--money').classList.toggle('is-on', !!state.b);
+
   const fill = () => {
-    const [title, text] = STATES[lang][code];
-    stateBox.querySelector('.state__title').textContent = title;
-    stateBox.querySelector('.state__text').textContent = text;
-    stateBox.dataset.state = code;
-    stateBox.classList.remove('state--swap');
+    const t = STATES[lang][code];
+    explain.querySelector('.explain__title').textContent = t.title;
+    explain.querySelector('.explain__list').replaceChildren(...t.list.map((text) => {
+      const li = document.createElement('li');
+      li.textContent = text;
+      return li;
+    }));
+    explain.querySelector('.explain__meaning').textContent = t.meaning;
+    const nextLine = explain.querySelector('.explain__next');
+    nextLine.textContent = t.next;
+    nextLine.hidden = !t.next;
+    $('#more-kaizen').hidden = code !== '10';
+    $('#more-blue').hidden = code !== '01';
+    $('#why').hidden = code !== '11';
+    explain.dataset.state = code;
+    explain.classList.remove('explain--swap');
   };
   clearTimeout(swapTimer);
   if (!animate || reduced) { fill(); return; }
-  stateBox.classList.add('state--swap');
+  explain.classList.add('explain--swap');
   swapTimer = setTimeout(fill, 180);
 }
 
 function toggle(key) {
   state = { ...state, [key]: state[key] ? 0 : 1 };
-  touched = true;
-  document.body.classList.remove('hint');
   store.set('kbo.state', state);
   if (planet) planet.set(state.k, state.b);
   renderState();
@@ -124,7 +191,7 @@ function layout() {
   let room = Math.min(cx, h.width - cx) - 8;
   const c = copy.getBoundingClientRect();
   if (c.right <= s.left + 1) room = Math.min(room, s.left + s.width / 2 - c.right - 16);
-  const radius = Math.min((Math.min(s.width, s.height) / 2) * 0.8, room / RING);
+  const radius = Math.min((Math.min(s.width, s.height) / 2) * 0.9, room / HALO);
   planet.layout(h.width, h.height, cx, cy, radius);
 }
 
@@ -240,7 +307,5 @@ onScroll();
 if (hero) {
   swK.addEventListener('click', () => toggle('k'));
   swB.addEventListener('click', () => toggle('b'));
-  // Подсказка, если человек ничего не нажал. Сами направления не включаем.
-  setTimeout(() => { if (!touched && view === 'home') document.body.classList.add('hint'); }, 7000);
   initPlanet();
 }

@@ -22,8 +22,8 @@ const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/cs
 
 const TEXT = {
   home: {
-    en: { label: 'Kaizen · Blue Ocean', title: 'Peace begins at home', sub: 'What is the world missing? Switch on love and prosperity and watch the planet heal.' },
-    ru: { label: 'Kaizen · Blue Ocean', title: 'Мир начинается дома', sub: 'Чего не хватает миру? Включите любовь и достаток — и посмотрите, как планета выздоравливает.' },
+    en: { label: 'Kaizen · Blue Ocean', title: 'The world lacks love and money', sub: 'Press “Love” and “Money” and watch the planet heal.' },
+    ru: { label: 'Kaizen · Blue Ocean', title: 'Миру не хватает любви и денег', sub: 'Нажмите «Любовь» и «Деньги» и посмотрите, как планета выздоравливает.' },
   },
   money: {
     en: { label: 'Money · Blue Ocean', title: 'Red ocean or blue?', sub: 'Market Game: a team business game where players find the blue ocean themselves.' },
@@ -62,7 +62,7 @@ function page(kind, lang) {
   .label { display: flex; align-items: center; gap: 10px; font: 500 15px/1 'JetBrains Mono', monospace;
            letter-spacing: .2em; text-transform: uppercase; color: #4a5a6e; }
   .label i { width: 11px; height: 11px; border-radius: 50%; background: ${dot}; }
-  h1 { margin: 0; font: 700 ${kind === 'home' ? 58 : 54}px/1.05 Unbounded, sans-serif; letter-spacing: -.02em; }
+  h1 { margin: 0; font: 700 ${kind === 'home' ? 50 : 54}px/1.08 Unbounded, sans-serif; letter-spacing: -.02em; }
   p { margin: 0; font-size: 25px; line-height: 1.4; color: #4a5a6e; }
   .shot { position: absolute; right: 56px; top: 50%; transform: translateY(-50%); width: 520px;
           border-radius: 18px; box-shadow: 0 2px 4px rgba(14,26,43,.08), 0 24px 48px -16px rgba(14,26,43,.35); }
@@ -83,7 +83,9 @@ ${kind === 'home' ? `<script type="module">
   const planet = new Planet(canvas, { reducedMotion: true, textureBase: '/assets/planet/', onReady: (err) => {
     if (err) { document.title = 'error'; return; }
     planet.set(1, 1, { instant: true });
-    planet.layout(1200, 630, 915, 315, 215);
+    planet.residual = 0.22;
+    planet.apply();
+    planet.layout(1200, 630, 925, 315, 232);
     planet.stop();
     for (let i = 0; i < 3; i++) planet.renderOnce();
     document.title = 'ready';

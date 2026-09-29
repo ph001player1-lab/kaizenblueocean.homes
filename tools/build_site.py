@@ -42,18 +42,18 @@ DOWNLOAD_NAMES = {
 }
 
 META = {
-    ('en', 'home'): ('Kaizen Blue Ocean — Peace begins at home',
-                     'Our hypothesis: people destroy themselves, each other and the planet when they lack love and '
-                     'sufficiency. Switch on Kaizen and Blue Ocean and watch the planet heal.'),
+    ('en', 'home'): ('Kaizen Blue Ocean — The world lacks love and money',
+                     'When people lack love and money, they destroy themselves, each other and the planet. '
+                     'Press “Love” and “Money” and watch the planet heal.'),
     ('en', 'money'): ('Money: red ocean or blue? — Kaizen Blue Ocean',
                       'In most markets everyone fights for the same customers. Learn to create new demand instead: '
                       'Market Game is a team business game where players find the blue ocean themselves.'),
     ('en', 'love'): ('Love: “The Flow of Love”, a free book — Kaizen Blue Ocean',
                      'An engineer’s book about what happens between two people: what contact is made of, how to check '
                      'whether it is matched, and how matched actions add up to a flow of love. Free PDF, open for comments.'),
-    ('ru', 'home'): ('Kaizen Blue Ocean — Мир начинается дома',
-                     'Наша гипотеза: люди разрушают себя, друг друга и планету, когда им не хватает любви и достатка. '
-                     'Включите Kaizen и Blue Ocean — и посмотрите, как планета выздоравливает.'),
+    ('ru', 'home'): ('Kaizen Blue Ocean — Миру не хватает любви и денег',
+                     'Когда людям не хватает любви и денег, они разрушают себя, друг друга и планету. '
+                     'Нажмите «Любовь» и «Деньги» и посмотрите, как планета выздоравливает.'),
     ('ru', 'money'): ('Деньги: красный океан или голубой? — Kaizen Blue Ocean',
                       'На большинстве рынков все дерутся за одних и тех же клиентов. Научитесь создавать новый спрос: '
                       'Market Game — командная бизнес-игра, в которой игроки сами находят голубой океан.'),

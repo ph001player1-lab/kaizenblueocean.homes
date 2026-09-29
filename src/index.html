@@ -31,39 +31,50 @@
 <div class="view" data-view="home">
   <section class="hero" id="top">
     <canvas class="hero__canvas" id="planet" aria-hidden="true"></canvas>
-    <div class="hero__slot" id="planet-slot" aria-hidden="true"></div>
-    <p class="nogl"><span data-l="ru">Здесь вращается Земля. Ваш браузер не показывает 3D-графику, но переключатели и подписи работают.</span><span data-l="en">The Earth turns here. Your browser does not show 3D graphics, but the switches and captions work.</span></p>
+    <div class="hero__art">
+      <div class="hero__slot" id="planet-slot" aria-hidden="true"></div>
+      <p class="nogl"><span data-l="ru">Здесь вращается Земля. Ваш браузер не показывает 3D-графику, но кнопки и подписи работают.</span><span data-l="en">The Earth turns here. Your browser does not show 3D graphics, but the buttons and captions work.</span></p>
+      <div class="health" id="health" data-level="0">
+        <p class="health__top"><span><span data-l="ru">Здоровье планеты</span><span data-l="en">Planet health</span></span><b id="health-status"><span data-l="ru">больна</span><span data-l="en">sick</span></b></p>
+        <div class="health__bar" aria-hidden="true"><span class="health__half health__half--love"></span><span class="health__half health__half--money"></span></div>
+        <p class="health__names" aria-hidden="true"><span><span data-l="ru">Любовь</span><span data-l="en">Love</span></span><span><span data-l="ru">Деньги</span><span data-l="en">Money</span></span></p>
+      </div>
+    </div>
 
     <div class="hero__copy">
       <p class="eyebrow"><span data-l="ru">Мир начинается дома</span><span data-l="en">Peace begins at home</span></p>
-      <h1><span data-l="ru">Чего не хватает миру?</span><span data-l="en">What is the world missing?</span></h1>
-      <p class="lead"><span data-l="ru">Наша гипотеза: люди разрушают себя, друг друга и планету, когда им не хватает любви и достатка. Включите — и посмотрите, что изменится.</span><span data-l="en">Our hypothesis: people destroy themselves, each other and the planet when they lack love and sufficiency. Switch them on and see what changes.</span></p>
+      <h1><span data-l="ru">Миру не хватает любви и денег</span><span data-l="en">The world lacks love and money</span></h1>
+      <p class="lead"><span data-l="ru">Когда людям не хватает любви и денег, они разрушают себя, друг друга и планету. Нажмите на кнопки и посмотрите, что изменится.</span><span data-l="en">When people lack love and money, they destroy themselves, each other and the planet. Press the buttons and see what changes.</span></p>
 
-      <div class="switches" role="group" id="switches" aria-label="Two directions" data-label-ru="Два направления" data-label-en="Two directions">
-        <div class="switch-cell switch-cell--kaizen">
-          <button type="button" class="switch switch--kaizen" id="sw-kaizen" aria-pressed="false">
-            <span class="switch__name">Kaizen</span>
-            <span class="switch__verb"><span data-l="ru">Улучшать любовь</span><span data-l="en">Improve love</span></span>
-            <span class="switch__track" aria-hidden="true"><span class="switch__knob"></span></span>
-          </button>
-          <a class="switch__more" id="more-kaizen" href="#love" hidden><span data-l="ru">Как это работает →</span><span data-l="en">How it works →</span></a>
-        </div>
-        <div class="switch-cell switch-cell--blue">
-          <button type="button" class="switch switch--blue" id="sw-blue" aria-pressed="false">
-            <span class="switch__name">Blue Ocean</span>
-            <span class="switch__verb"><span data-l="ru">Создавать достаток</span><span data-l="en">Create prosperity</span></span>
-            <span class="switch__track" aria-hidden="true"><span class="switch__knob"></span></span>
-          </button>
-          <a class="switch__more" id="more-blue" href="#money" hidden><span data-l="ru">Как это работает →</span><span data-l="en">How it works →</span></a>
-        </div>
+      <div class="switches" role="group" id="switches" aria-label="Love and money" data-label-ru="Любовь и деньги" data-label-en="Love and money">
+        <p class="cue" id="cue" data-at="k" aria-hidden="true"><span><span data-l="ru">Нажмите</span><span data-l="en">Press</span></span></p>
+        <button type="button" class="switch switch--kaizen" id="sw-kaizen" aria-pressed="false">
+          <span class="switch__name"><span class="switch__num" aria-hidden="true">1</span><span data-l="ru">Любовь</span><span data-l="en">Love</span></span>
+          <span class="switch__verb"><span data-l="ru">Kaizen: улучшать отношения</span><span data-l="en">Kaizen: improve relationships</span></span>
+          <span class="switch__track" aria-hidden="true"><span class="switch__knob"></span></span>
+        </button>
+        <button type="button" class="switch switch--blue" id="sw-blue" aria-pressed="false">
+          <span class="switch__name"><span class="switch__num" aria-hidden="true">2</span><span data-l="ru">Деньги</span><span data-l="en">Money</span></span>
+          <span class="switch__verb"><span data-l="ru">Blue Ocean: создавать достаток</span><span data-l="en">Blue Ocean: create prosperity</span></span>
+          <span class="switch__track" aria-hidden="true"><span class="switch__knob"></span></span>
+        </button>
       </div>
 
-      <div class="state" id="state" aria-live="polite" data-state="s00">
-        <p class="state__label"><span data-l="ru">Состояние планеты</span><span data-l="en">State of the planet</span></p>
-        <p class="state__title"><span data-l="ru">Дефицит и принуждение</span><span data-l="en">Scarcity and coercion</span></p>
-        <p class="state__text"><span data-l="ru">Люди борются за то, чего не хватает. Болеют и воздух, и вода, и земля.</span><span data-l="en">People fight over what they lack. The air, the water and the land are all sick.</span></p>
+      <div class="explain" id="explain" aria-live="polite" data-state="00">
+        <p class="explain__label"><span data-l="ru">Что происходит</span><span data-l="en">What is happening</span></p>
+        <p class="explain__title"><span data-l="ru">Планета больна</span><span data-l="en">The planet is sick</span></p>
+        <ul class="explain__list">
+          <li><span data-l="ru">Красные очаги — там, где люди выгорают, ссорятся и воюют.</span><span data-l="en">Red spots mark where people burn out, quarrel and fight.</span></li>
+          <li><span data-l="ru">Смог, мутная вода и выжженная земля — так выглядит жизнь в нехватке.</span><span data-l="en">Smog, murky water and scorched land: this is what life in scarcity looks like.</span></li>
+        </ul>
+        <p class="explain__meaning"><span data-l="ru">Когда не хватает любви и денег, люди борются за то, чего мало.</span><span data-l="en">When love and money run short, people fight over what little there is.</span></p>
+        <p class="explain__next"><span data-l="ru">Начните с первой кнопки — «Любовь».</span><span data-l="en">Start with the first button: Love.</span></p>
+        <p class="explain__more">
+          <a id="more-kaizen" href="#love" hidden><span data-l="ru">Подробнее о любви →</span><span data-l="en">More about love →</span></a>
+          <a id="more-blue" href="#money" hidden><span data-l="ru">Подробнее о деньгах →</span><span data-l="en">More about money →</span></a>
+          <a id="why" href="#chapters" hidden><span data-l="ru">Как к этому прийти ↓</span><span data-l="en">How to get there ↓</span></a>
+        </p>
       </div>
-      <a class="why" id="why" href="#chapters" hidden><span data-l="ru">Как к этому прийти ↓</span><span data-l="en">How to get there ↓</span></a>
     </div>
   </section>
 

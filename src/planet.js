@@ -1,11 +1,12 @@
 // Планета главного экрана. Всё её состояние — два числа от 0 до 1:
-// kaizen (любовь, близость) и blueOcean (достаток, новые возможности).
-// Шейдеры читают их напрямую; переходы между состояниями — плавные твины.
+// kaizen («Любовь») и blueOcean («Деньги»). Шейдеры читают их напрямую;
+// переходы между состояниями — плавные твины.
 //
-// Что меняется: воздух (смог рассеивается), вода (мутная становится чистой
-// и синей), земля (выжженная зеленеет), огни городов меняют цвет, очаги износа
-// гаснут. Кольцо вокруг планеты — символ единства: Kaizen строит одну его
-// половину, Blue Ocean — другую, и только вместе кольцо смыкается.
+// Каждая кнопка меняет своё, и это должно быть видно сразу:
+// «Любовь» — зеленеет земля, теплеют огни городов, очаги гаснут точками;
+// «Деньги» — вода становится чистой и синей, огни холодные, очаги гаснут
+// областями. Воздух каждая кнопка чистит наполовину: смог уходит, только
+// когда нажаты обе.
 
 // Three.js r170 лежит рядом, в vendor/: сайт не ходит за кодом на чужие серверы.
 import * as THREE from './vendor/three.module.min.js';
@@ -77,14 +78,14 @@ const EARTH_FRAG = /* glsl */`
     // прорастает из множества точек (Kaizen — маленькими шагами).
     float snow = smoothstep(0.45, 0.7, lum);
     vec3 barren = vec3(lum) * vec3(1.12, 0.95, 0.76) * 0.92;
-    vec3 land = mix(barren, day, clamp(0.25 + 0.45 * b + 0.3 * k, 0.0, 1.0));
+    vec3 land = mix(barren, day, clamp(0.25 + 0.35 * b + 0.3 * k, 0.0, 1.0));
     float growN = noise(vPosO * 26.0) * 0.55 + noise(vPosO * 7.0) * 0.45;
     float grow = smoothstep(growN - 0.10, growN + 0.10, k * 1.1);
-    land = mix(land, day * vec3(0.78, 1.25, 0.72), grow * (1.0 - snow) * 0.6);
+    land = mix(land, day * vec3(0.70, 1.32, 0.64), grow * (1.0 - snow) * 0.82);
 
     // Вода: мутная, бурая → чистая глубокая синева (Blue Ocean).
     vec3 murky = vec3(lum) * vec3(0.95, 0.84, 0.70) * 0.85 + vec3(0.02, 0.014, 0.008);
-    vec3 ocean = mix(murky, day, clamp(0.25 + 0.3 * k + 0.45 * b, 0.0, 1.0));
+    vec3 ocean = mix(murky, day, clamp(0.25 + 0.1 * k + 0.45 * b, 0.0, 1.0));
     ocean = mix(ocean, day * vec3(0.55, 1.05, 1.55) + vec3(0.0, 0.012, 0.04), b);
     vec3 surf = mix(land, ocean, water);
 
@@ -175,71 +176,6 @@ const ATMO_FRAG = /* glsl */`
     vec3 col = mix(vec3(0.30, 0.62, 1.0), vec3(0.42, 0.32, 0.24), uSmog);
     float a = i * (0.25 + 0.75 * sun) * 0.62;
     gl_FragColor = vec4(col, a);
-    #include <colorspace_fragment>
-  }
-`;
-
-const RING_VERT = /* glsl */`
-  varying vec3 vPosL;
-  varying vec3 vPosW;
-  varying vec3 vNormalW;
-  void main() {
-    vPosL = position;
-    vec4 wp = modelMatrix * vec4(position, 1.0);
-    vPosW = wp.xyz;
-    vNormalW = normalize(mat3(modelMatrix) * normal);
-    gl_Position = projectionMatrix * viewMatrix * wp;
-  }
-`;
-
-// Кольцо из модулей. Пока его нет, виден только пунктир — место, где оно
-// может быть. Каждая половина строится от дальней стороны к ближней:
-// Kaizen — золотая, Blue Ocean — синяя. Смыкаются они прямо перед зрителем.
-const RING_FRAG = /* glsl */`
-  uniform float uK, uB, uFront, uTime, uMotion;
-  uniform vec3 uSunDir, uCamPos, uGold, uBlue;
-  varying vec3 vPosL;
-  varying vec3 vPosW;
-  varying vec3 vNormalW;
-  const float PI = 3.14159265;
-  void main() {
-    float ang = atan(vPosL.y, vPosL.x);
-    float rel = mod(ang - uFront + PI, 2.0 * PI) - PI;   // 0 — ближе всего к зрителю
-    float side = step(0.0, rel);                          // 1 — половина Kaizen
-    float prog = mix(uB, uK, side) * 1.02;
-    float fromBack = (PI - abs(rel)) / PI;                // 0 сзади, 1 спереди
-    float built = 1.0 - smoothstep(prog - 0.012, prog, fromBack);
-
-    // Свет: рассеянный и блик; в тени планеты кольцо темнее.
-    vec3 N = normalize(vNormalW);
-    vec3 L = normalize(uSunDir);
-    vec3 V = normalize(uCamPos - vPosW);
-    float t = dot(vPosW, L);
-    float shadow = t < 0.0 ? smoothstep(0.9, 1.05, sqrt(max(dot(vPosW, vPosW) - t * t, 0.0))) : 1.0;
-    float diff = max(dot(N, L), 0.0) * shadow;
-    float spec = pow(max(dot(N, normalize(L + V)), 0.0), 36.0) * shadow;
-
-    float u = ang / (2.0 * PI);
-    float seg = fract(u * 64.0);
-    float joint = smoothstep(0.0, 0.07, seg) * smoothstep(1.0, 0.93, seg);
-    float node = step(0.75, fract(u * 16.0)) * exp(-pow((seg - 0.5) / 0.16, 2.0));
-
-    vec3 base = mix(uBlue, uGold, side);
-    vec3 col = base * (0.5 + 0.8 * diff) * mix(0.6, 1.0, joint) + vec3(1.0, 0.97, 0.9) * spec * 0.55;
-
-    float growing = step(prog, 1.0);
-    float tip = exp(-pow((fromBack - prog) / 0.02, 2.0)) * growing;
-    float closed = smoothstep(0.985, 1.0, min(uK, uB));
-    float seam = exp(-pow(rel / 0.035, 2.0)) * closed;
-    float run = closed * uMotion * pow(0.5 + 0.5 * cos(ang - uTime * 0.35), 24.0);
-    col += vec3(1.0, 0.96, 0.86) * (tip * 0.9 + seam * 0.7 + run * 0.4 + node * built * 0.35);
-
-    // Пунктир там, где кольца ещё нет.
-    float dash = step(0.5, fract(u * 160.0));
-    vec3 ghost = vec3(0.36, 0.43, 0.52);
-    float alpha = mix(0.26 * dash, 1.0, built);
-    if (alpha < 0.01) discard;
-    gl_FragColor = vec4(mix(ghost, col, built), alpha);
     #include <colorspace_fragment>
   }
 `;
@@ -349,31 +285,6 @@ export class Planet {
         depthWrite: false,
       })
     ));
-
-    // Кольцо лежит в плоскости экватора. uFront — угол его точки,
-    // ближайшей к зрителю: там половины и смыкаются.
-    const ring = new THREE.Mesh(
-      new THREE.TorusGeometry(1.28, 0.012, 12, mobile ? 480 : 720),
-      new THREE.ShaderMaterial({
-        uniforms: {
-          uK: this.shared.uK, uB: this.shared.uB, uTime: this.shared.uTime, uMotion: this.shared.uMotion,
-          uSunDir: this.shared.uSunDir, uCamPos: this.shared.uCamPos, uFront: { value: 0 },
-          uGold: { value: new THREE.Color('#d9a02b') }, uBlue: { value: new THREE.Color('#1c8fd8') },
-        },
-        vertexShader: RING_VERT,
-        fragmentShader: RING_FRAG,
-        transparent: true,
-      })
-    );
-    ring.rotation.x = Math.PI / 2;
-    ring.renderOrder = 2;
-    this.tilt.add(ring);
-    this.scene.updateMatrixWorld(true);
-    let best = -Infinity;
-    for (let a = 0; a < Math.PI * 2; a += 0.5 * DEG) {
-      const z = new THREE.Vector3(Math.cos(a) * 1.28, Math.sin(a) * 1.28, 0).applyMatrix4(ring.matrixWorld).z;
-      if (z > best) { best = z; ring.material.uniforms.uFront.value = a; }
-    }
 
     this.ready = true;
     this.apply();
