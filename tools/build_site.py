@@ -5,11 +5,11 @@ src/index.html — один файл на все страницы и оба яз
 править и показывать как прототип. Здесь из него получаются отдельные
 страницы, у каждой свой адрес. Английский — по умолчанию, в корне:
 
-  /            /money/            /love/
-  /ru/         /ru/money/         /ru/love/
+  /            /money/            /love/            /time/
+  /ru/         /ru/money/         /ru/love/         /ru/time/
 
 Плюс обе книги в /files/, 404, sitemap.xml, robots.txt, llms.txt и CNAME.
-Шрифты и Three.js лежат на самом сайте: внешних запросов нет.
+Шрифты, Three.js и данные карты лежат на самом сайте: внешних запросов нет.
 
 Запуск:  python3 tools/build_site.py      (нужен только Python 3.9+)
 """
@@ -27,7 +27,7 @@ DOMAIN = 'kaizenblueocean.homes'
 SITE = f'https://{DOMAIN}'
 
 LANGS = {'en': '/', 'ru': '/ru/'}
-PAGES = {'home': '', 'money': 'money/', 'love': 'love/'}
+PAGES = {'home': '', 'money': 'money/', 'love': 'love/', 'time': 'time/'}
 LOCALE = {'en': 'en_US', 'ru': 'ru_RU'}
 
 RAW = 'https://raw.githubusercontent.com/ph001player1-lab/kaizenblueocean.homes/claude/zealous-dirac-yrij3p/materials/'
@@ -51,6 +51,10 @@ META = {
     ('en', 'love'): ('Love: “The Flow of Love”, a free book — Kaizen Blue Ocean',
                      'An engineer’s book about what happens between two people: what contact is made of, how to check '
                      'whether it is matched, and how matched actions add up to a flow of love. Free PDF, open for comments.'),
+    ('en', 'time'): ('Time machine: what time do you live in? — Kaizen Blue Ocean',
+                     'Everyone shares one calendar, but not one way of life: 671 million people live without electricity, '
+                     'while 935 million already use AI. A world map on open data, from the Middle Ages to 6G, AGI, robots '
+                     'and basic income.'),
     ('ru', 'home'): ('Kaizen Blue Ocean — Миру не хватает любви и денег',
                      'Когда людям не хватает любви и денег, они разрушают себя, друг друга и планету. '
                      'Нажмите «Любовь» и «Деньги» и посмотрите, как планета выздоравливает.'),
@@ -61,6 +65,9 @@ META = {
                      'Книга инженера о том, что происходит между двумя людьми: из чего устроен контакт, как проверить, '
                      'согласован ли он, и как из согласованных действий складывается поток любви. PDF бесплатно, '
                      'комментарии открыты.'),
+    ('ru', 'time'): ('Машина времени: в каком времени вы живёте? — Kaizen Blue Ocean',
+                     'Календарь у всех один, а быт разный: 671 млн человек живут без электричества, а 935 млн уже '
+                     'пользуются ИИ. Карта мира на открытых данных: от Средних веков до 6G, AGI, роботов и базового дохода.'),
 }
 
 VOID = {'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'source', 'track', 'wbr'}
@@ -183,6 +190,17 @@ def structured(lang, page):
                  'numberOfPages': 95 if en else 89, 'isAccessibleForFree': True,
                  'url': SITE + ('/files/the-flow-of-love.pdf' if en else '/files/potok-lyubvi.pdf'),
                  'image': SITE + ('/assets/img/book-en.webp' if en else '/assets/img/book.webp')}]
+    if page == 'time':
+        en = lang == 'en'
+        return [{'@context': 'https://schema.org', '@type': 'Dataset',
+                 'name': 'Love, money and time on the world map' if en else 'Любовь, деньги и время на карте мира',
+                 'description': META[(lang, 'time')][1], 'url': SITE + url(lang, 'time'), 'inLanguage': lang,
+                 'creator': author, 'isAccessibleForFree': True,
+                 'isBasedOn': ['https://v-dem.net/', 'https://pip.worldbank.org/', 'https://www.worldbank.org/en/publication/globalfindex',
+                               'https://unstats.un.org/sdgs/dataportal', 'https://ourworldindata.org/', 'https://ifr.org/',
+                               'https://www.naturalearthdata.com/'],
+                 'distribution': {'@type': 'DataDownload', 'encodingFormat': 'application/json',
+                                  'contentUrl': SITE + '/assets/map/world.json'}}]
     return None
 
 
@@ -314,7 +332,13 @@ not the maximum. The site is in English (default) and Russian.
 - [Home]({SITE}/): the planet that heals when both directions are switched on
 - [Money]({SITE}/money/): red ocean or blue; Market Game, a team business game; schedule and sign-up at marketgame.club
 - [Love]({SITE}/love/): the book “The Flow of Love: An Owner's Manual”, free PDF, open for comments
-- Russian: [Главная]({SITE}/ru/), [Деньги]({SITE}/ru/money/), [Любовь]({SITE}/ru/love/)
+- [Time]({SITE}/time/): a time machine on open data: which era people live in, from the Middle Ages to AI,
+  and what lies ahead (6G, AGI, robots, basic income)
+- Russian: [Главная]({SITE}/ru/), [Деньги]({SITE}/ru/money/), [Любовь]({SITE}/ru/love/), [Время]({SITE}/ru/time/)
+
+The Money, Love and Time pages share a world map with three tabs: love (freedom, V-Dem civil liberties index),
+money (daily income of the poorest 10%, World Bank) and time (the era people live in). Data:
+[world.json]({SITE}/assets/map/world.json).
 
 ## Books
 
@@ -343,7 +367,7 @@ def main():
             path.write_text(render(source, lang, page), encoding='utf-8')
     (OUT / '404.html').write_text(render(source, 'en', '404'), encoding='utf-8')
 
-    for name in ('styles.css', 'app.js', 'planet.js'):
+    for name in ('styles.css', 'app.js', 'planet.js', 'atlas.js'):
         shutil.copy2(SRC / name, OUT / name)
     shutil.copytree(SRC / 'vendor', OUT / 'vendor')
     shutil.copytree(SRC / 'assets', OUT / 'assets')

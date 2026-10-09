@@ -1,7 +1,8 @@
 // Картинки для превью ссылок (1200×630) и иконки сайта.
 // Рисует их браузер: те же шрифты, цвета и та же планета, что на сайте.
 //
-// Запуск:  node tools/make_og.cjs
+// Запуск:  node tools/make_og.cjs [home money love time]
+// Без аргументов рисует все превью и иконки; с аргументами — только эти превью.
 // Нужен Playwright с Chromium (npm i -g playwright). Результат — в src/assets/og/
 // и src/assets/icons/; его кладём в репозиторий, сборке сайта Node не нужен.
 
@@ -33,7 +34,30 @@ const TEXT = {
     en: { label: 'Love · Kaizen', title: 'The Flow of Love', sub: 'An Owner’s Manual. An engineer’s book about what happens between two people. Free PDF.' },
     ru: { label: 'Любовь · Kaizen', title: 'Поток любви', sub: 'Инструкция по эксплуатации. Книга инженера о том, что происходит между двумя людьми. PDF бесплатно.' },
   },
+  time: {
+    en: { label: 'Time · time machine', title: 'What time do you live in?', sub: 'From the Middle Ages to AI, and on to 6G, AGI, robots and basic income.' },
+    ru: { label: 'Время · машина времени', title: 'В каком времени вы живёте?', sub: 'От Средних веков до ИИ — и дальше: 6G, AGI, роботы, базовый доход.' },
+  },
 };
+
+// Цвета эпох — как в src/atlas.js: эпоха нижних 10% жителей страны.
+const ERA_COLORS = ['#6f4a2f', '#b8743a', '#e2b55f', '#8cc7b8', '#3a93d0', '#4c3fc4'];
+const MAP_SCRIPT = `<script type="module">
+  const D = await (await fetch('/assets/map/world.json')).json();
+  const colors = ${JSON.stringify(ERA_COLORS)};
+  const svg = document.getElementById('map');
+  svg.setAttribute('viewBox', '0 0 1000 ' + D.h);
+  let html = '<path d="' + D.outline + '" fill="#e6eff8"/>';
+  for (const code in D.p) {
+    const t = D.c[code].t;
+    const fill = t && t.b != null ? colors[t.b] : '#dfe4ea';
+    html += '<path d="' + D.p[code] + '" fill="' + fill + '" stroke="#fff" stroke-width="0.6"/>';
+  }
+  html += '<path d="' + D.crimea + '" fill="#dfe4ea" stroke="#fff" stroke-width="0.6"/>';
+  svg.innerHTML = html;
+  await document.fonts.ready;
+  document.title = 'ready';
+</script>`;
 
 const ART = {
   money: { en: '/assets/mg/format-en.jpg', ru: '/assets/mg/format.jpg' },
@@ -42,11 +66,12 @@ const ART = {
 
 function page(kind, lang) {
   const t = TEXT[kind][lang];
-  const dot = kind === 'love' ? 'linear-gradient(90deg,#1e8449,#e0a635)' : '#0b78bf';
+  const dot = { love: 'linear-gradient(90deg,#1e8449,#e0a635)', time: 'linear-gradient(90deg,#6f4a2f,#e2b55f 40%,#3a93d0 70%,#4c3fc4)' }[kind] || '#0b78bf';
   let art = '';
   if (kind === 'home') art = '<canvas id="planet" width="1200" height="630"></canvas>';
   if (kind === 'money') art = `<img class="shot" src="${ART.money[lang]}" alt="">`;
   if (kind === 'love') art = `<img class="book" src="${ART.love[lang]}" alt="">`;
+  if (kind === 'time') art = '<svg id="map" class="map"></svg>';
   return `<!doctype html><html lang="${lang}"><head><meta charset="utf-8">
 <link rel="stylesheet" href="/assets/fonts/fonts.css">
 <style>
@@ -69,6 +94,7 @@ function page(kind, lang) {
   .book { position: absolute; right: 110px; top: 50%; transform: translateY(-50%); height: 560px; aspect-ratio: 4 / 5;
           object-fit: cover; object-position: 50% 45%; border-radius: 18px;
           box-shadow: 0 2px 4px rgba(14,26,43,.08), 0 24px 48px -16px rgba(14,26,43,.4); }
+  .map { position: absolute; right: 28px; top: 50%; transform: translateY(-50%); width: 640px; height: auto; }
 </style></head><body>
 ${art}
 <div class="copy">
@@ -90,7 +116,7 @@ ${kind === 'home' ? `<script type="module">
     for (let i = 0; i < 3; i++) planet.renderOnce();
     document.title = 'ready';
   } });
-</script>` : '<script>document.fonts.ready.then(() => { document.title = "ready"; });</script>'}
+</script>` : kind === 'time' ? MAP_SCRIPT : '<script>document.fonts.ready.then(() => { document.title = "ready"; });</script>'}
 </body></html>`;
 }
 
@@ -108,7 +134,9 @@ ${kind === 'home' ? `<script type="module">
   });
   const tab = await ctx.newPage();
   tab.on('pageerror', (e) => console.error('pageerror', e.message));
+  const only = process.argv.slice(2);
   for (const kind of Object.keys(TEXT)) {
+    if (only.length && !only.includes(kind)) continue;
     for (const lang of ['en', 'ru']) {
       const p = `/og-${kind}-${lang}.html`;
       pages[p] = page(kind, lang);
@@ -120,6 +148,7 @@ ${kind === 'home' ? `<script type="module">
       console.log('og', path.relative(ROOT, out));
     }
   }
+  if (only.length) { await browser.close(); return; }
   // Иконки: 180 px для iOS (на светлом фоне) и 32/16 px — для favicon.ico.
   pages['/icon.html'] = `<!doctype html><html><head><style>html,body{margin:0;background:#f7fafc}
     img{display:block;width:140px;height:140px;margin:20px}</style></head>

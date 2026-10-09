@@ -1,16 +1,17 @@
-// Сайт Kaizen Blue Ocean: главная и две страницы — «Деньги» и «Любовь».
+// Сайт Kaizen Blue Ocean: главная и три страницы — «Деньги», «Любовь» и «Время».
 //
 // Один и тот же код работает в двух режимах:
 // — исходник (src/index.html, он же прототип): все страницы и оба языка
-//   в одном файле, страницы переключаются якорями #money и #love, язык —
-//   кнопками;
+//   в одном файле, страницы переключаются якорями #money, #love и #time,
+//   язык — кнопками;
 // — собранный сайт (tools/build_site.py): у каждой страницы и языка свой
 //   адрес, в файле только одна страница и один язык.
 // На главной — планета, две кнопки («Любовь» и «Деньги»), шкала здоровья
 // планеты и объяснение, что изменилось. Кнопки меняют только планету
 // и никуда не уводят; подсказка «Нажмите» стоит над следующей кнопкой.
+// Карту мира с вкладками «Любовь», «Деньги», «Время» рисует atlas.js.
 
-const PAGES = ['money', 'love'];
+const PAGES = ['money', 'love', 'time'];
 
 // Что происходит на планете в каждом из четырёх состояний.
 // Код: первая цифра — «Любовь» (Kaizen), вторая — «Деньги» (Blue Ocean).
@@ -76,8 +77,8 @@ const HEALTH = {
 };
 
 const TITLES = {
-  ru: { home: 'Kaizen Blue Ocean · Миру не хватает любви и денег', money: 'Деньги · Kaizen Blue Ocean', love: 'Любовь · Kaizen Blue Ocean' },
-  en: { home: 'Kaizen Blue Ocean · The world lacks love and money', money: 'Money · Kaizen Blue Ocean', love: 'Love · Kaizen Blue Ocean' },
+  ru: { home: 'Kaizen Blue Ocean · Миру не хватает любви и денег', money: 'Деньги · Kaizen Blue Ocean', love: 'Любовь · Kaizen Blue Ocean', time: 'Время · Kaizen Blue Ocean' },
+  en: { home: 'Kaizen Blue Ocean · The world lacks love and money', money: 'Money · Kaizen Blue Ocean', love: 'Love · Kaizen Blue Ocean', time: 'Time · Kaizen Blue Ocean' },
 };
 
 // Ореол атмосферы чуть шире диска: он не должен упираться в текст и в края экрана.
@@ -118,6 +119,7 @@ if (savedState && typeof savedState === 'object') state = { k: savedState.k ? 1 
 let view = routed ? null : (document.body.dataset.page || 'home');
 let homeY = 0;
 let planet = null;
+let atlas = null;
 let heroSeen = true;
 let swapTimer = 0;
 
@@ -130,6 +132,7 @@ function applyLang() {
   $$('[data-label-ru]').forEach((el) => el.setAttribute('aria-label', en ? el.dataset.labelEn : el.dataset.labelRu));
   if (view) document.title = TITLES[lang][view];
   renderState(false);
+  if (atlas) atlas.setLang(lang);
 }
 
 // ── планета, подсказка, шкала и объяснение ───────────
@@ -238,6 +241,29 @@ async function initPlanet() {
   document.addEventListener('visibilitychange', run);
 }
 
+// Карту грузим, когда она близко к экрану: модуль и данные (~50 КБ) нужны не всем.
+function initAtlas() {
+  const targets = $$('[data-atlas], [data-atlas-mini]');
+  if (!targets.length) return;
+  let started = false;
+  const start = async () => {
+    if (started) return;
+    started = true;
+    try {
+      const mod = await import('./atlas.js');
+      atlas = await mod.init({ lang, dataUrl: new URL('assets/map/world.json', import.meta.url).href });
+      if (atlas) atlas.setLang(lang);   // язык могли переключить, пока грузились
+    } catch (e) {
+      console.error('Карта не загрузилась', e);
+    }
+  };
+  if (routed || !('IntersectionObserver' in window)) { start(); return; }
+  const io = new IntersectionObserver((entries) => {
+    if (entries.some((e) => e.isIntersecting)) { io.disconnect(); start(); }
+  }, { rootMargin: '800px 0px' });
+  targets.forEach((t) => io.observe(t));
+}
+
 // ── страницы в исходнике ─────────────────────────────
 function hashId() {
   try { return decodeURIComponent(location.hash.slice(1)); } catch (e) { return ''; }
@@ -309,3 +335,4 @@ if (hero) {
   swB.addEventListener('click', () => toggle('b'));
   initPlanet();
 }
+initAtlas();
