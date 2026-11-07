@@ -5,11 +5,16 @@ src/index.html — один файл на все страницы и оба яз
 править и показывать как прототип. Здесь из него получаются отдельные
 страницы, у каждой свой адрес. Английский — по умолчанию, в корне:
 
-  /            /money/            /love/            /time/
-  /ru/         /ru/money/         /ru/love/         /ru/time/
+  /            /money/            /love/            /time/            /ideas/
+  /ru/         /ru/money/         /ru/love/         /ru/time/         /ru/ideas/
 
-Плюс обе книги в /files/, 404, sitemap.xml, robots.txt, llms.txt и CNAME.
-Шрифты, Three.js и данные карты лежат на самом сайте: внешних запросов нет.
+Плюс обе книги в /files/, файлы идей в /ideas/files/, 404, sitemap.xml,
+robots.txt, llms.txt и CNAME. Шрифты, Three.js и данные карты лежат на
+самом сайте. Единственный внешний запрос — отправка идеи в Google Форму.
+
+Раздел «Идеи» собирается из ideas/*.md: уровень на шкале «насилие — любовь»
+считается здесь же из флагов по правилам docs/ideas-rubric.md, а не
+берётся из файла, — так у всех идей одна формула.
 
 Запуск:  python3 tools/build_site.py      (нужен только Python 3.9+)
 """
@@ -27,7 +32,7 @@ DOMAIN = 'kaizenblueocean.homes'
 SITE = f'https://{DOMAIN}'
 
 LANGS = {'en': '/', 'ru': '/ru/'}
-PAGES = {'home': '', 'money': 'money/', 'love': 'love/', 'time': 'time/'}
+PAGES = {'home': '', 'money': 'money/', 'love': 'love/', 'time': 'time/', 'ideas': 'ideas/'}
 LOCALE = {'en': 'en_US', 'ru': 'ru_RU'}
 
 RAW = 'https://raw.githubusercontent.com/ph001player1-lab/kaizenblueocean.homes/claude/zealous-dirac-yrij3p/materials/'
@@ -55,6 +60,9 @@ META = {
                      'Everyone shares one calendar, but not one way of life: 671 million people live without electricity, '
                      'while 935 million already use AI. A world map on open data, from the Middle Ages to 6G, AGI, robots '
                      'and basic income.'),
+    ('en', 'ideas'): ('Ideas for a world without violence — Kaizen Blue Ocean',
+                      'An open registry of ideas for a better world. Every idea is rated on one open scale, from violence '
+                      'to love: does it reduce violence or only shift it onto others? Read, download and share the best ones.'),
     ('ru', 'home'): ('Kaizen Blue Ocean — Миру не хватает любви и денег',
                      'Когда людям не хватает любви и денег, они разрушают себя, друг друга и планету. '
                      'Нажмите «Любовь» и «Деньги» и посмотрите, как планета выздоравливает.'),
@@ -68,6 +76,10 @@ META = {
     ('ru', 'time'): ('Машина времени: в каком времени вы живёте? — Kaizen Blue Ocean',
                      'Календарь у всех один, а быт разный: 671 млн человек живут без электричества, а 935 млн уже '
                      'пользуются ИИ. Карта мира на открытых данных: от Средних веков до 6G, AGI, роботов и базового дохода.'),
+    ('ru', 'ideas'): ('Идеи для мира без насилия — Kaizen Blue Ocean',
+                      'Открытый реестр идей, как сделать мир лучше. Каждую идею оценивают по одной открытой шкале — '
+                      'от насилия к любви: снижает ли она насилие или только переносит его на других. Лучшие можно '
+                      'прочитать, скачать и передать дальше.'),
 }
 
 VOID = {'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'source', 'track', 'wbr'}
@@ -274,6 +286,8 @@ def render(source, lang, page):
                 tok = set_attr(tok, 'data-page', 'home' if page == '404' else page)
         out.append(tok)
     doc = ''.join(out)
+    if page == 'ideas':
+        doc = fill_ideas(doc, lang)
     if page == '404':
         doc = re.sub(r'<main>.*?</main>', lambda m: not_found(), doc, count=1, flags=re.S)
         doc = doc.replace('<meta name="description"', '<meta name="robots" content="noindex">\n<meta name="description"', 1)
@@ -299,6 +313,233 @@ def not_found():
   </div>
 </section>
 </main>'''
+
+
+# ── идеи: шкала «насилие — любовь» ───────────────────
+# Правила — docs/ideas-rubric.md. Уровень считается из флагов, а не берётся из файла.
+IDEAS_DIR = ROOT / 'ideas'
+FLAGS = [  # ключ в файле, название ru, en
+    ('transfer', 'Перенос', 'Transfer'),
+    ('rollback', 'Откат', 'Rollback'),
+    ('exit', 'Выход', 'Exit'),
+    ('bridge', 'Мост', 'Bridge'),
+    ('guardian', 'Опекун', 'Guardian'),
+]
+FLAG_VALUES = {'green': ('зелёный', 'green'), 'yellow': ('жёлтый', 'yellow'), 'red': ('красный', 'red'),
+               'na': ('не применимо', 'n/a')}
+LEVELS = {  # уровень → (название ru, en, условие ru, en)
+    -3: ('Насилие через тень', 'Violence via the shadow', 'Перенос и Выход красные', 'Transfer and Exit red'),
+    -2: ('Переносит насилие', 'Shifts violence', 'Перенос красный', 'Transfer red'),
+    -1: ('Временное согласие', 'Temporary consent', 'Откат, Мост или Опекун красный', 'Rollback, Bridge or Guardian red'),
+    0: ('Неопределённо', 'Uncertain', 'Эффект не ясен или нет данных', 'No clear effect, or no data'),
+    1: ('Снижает, но держится на ресурсе', 'Reduces, but depends on resources', 'Красных нет, жёлтых два и больше',
+        'No red, two or more yellow'),
+    2: ('Снижает насилие', 'Reduces violence', 'Красных нет, жёлтый не больше одного', 'No red, at most one yellow'),
+    3: ('Поток любви', 'Flow of love', 'Все флаги зелёные', 'All flags green'),
+}
+IDEA_TEXT = {
+    'ru': {'count': 'идей: {}', 'review': 'Разбор и текст идеи', 'download': 'Скачать .md', 'copy': 'Скопировать ссылку',
+           'improve': 'Как усилить', 'pattern': 'Повторяет', 'anon': 'аноним', 'calib': 'Калибровочные отметки',
+           'calib_lead': 'Исторические случаи с известным исходом. Шкала прошла по ним до того, как принимать идеи.',
+           'outcome': 'На деле', 'source': 'Источник', 'flags': 'Флаги',
+           'key': (('green', 'норма'), ('yellow', 'риск'), ('red', 'провал'), ('na', 'не применимо')),
+           'empty': 'Пока здесь пусто. Пройдите интервью и пришлите первую идею — она откроет рейтинг.',
+           'empty_link': 'К интервью ↑'},
+    'en': {'count': 'ideas: {}', 'review': 'Review and full text', 'download': 'Download .md', 'copy': 'Copy link',
+           'improve': 'How to make it stronger', 'pattern': 'Repeats', 'anon': 'anonymous', 'calib': 'Calibration marks',
+           'calib_lead': 'Historical cases with a known outcome. The scale was tested on them before taking ideas.',
+           'outcome': 'What happened', 'source': 'Source', 'flags': 'Flags',
+           'key': (('green', 'fine'), ('yellow', 'risk'), ('red', 'failure'), ('na', 'not applicable')),
+           'empty': 'Nothing here yet. Go through the interview and send the first idea; it will open the ranking.',
+           'empty_link': 'To the interview ↑'},
+}
+
+
+def idea_level(f):
+    """Уровень от −3 до 3 по флагам и направлению ΔК111 — раздел 3 docs/ideas-rubric.md."""
+    flags = [f.get(key, 'na') for key, _, _ in FLAGS]
+    if f.get('transfer') == 'red' and f.get('exit') == 'red':
+        return -3
+    if f.get('transfer') == 'red':
+        return -2
+    if 'red' in (f.get('rollback'), f.get('bridge'), f.get('guardian')):
+        return -1
+    if f.get('delta') != 'up':
+        return 0
+    yellow = flags.count('yellow')
+    return 3 if yellow == 0 else 2 if yellow == 1 else 1
+
+
+def read_idea(path):
+    raw = path.read_text(encoding='utf-8').replace('\r\n', '\n')
+    m = re.match(r'---\n(.*?)\n---\n?(.*)', raw, re.S)
+    assert m, f'{path}: нет полей между строками ---'
+    fields = {}
+    for line in m.group(1).splitlines():
+        if ':' in line:
+            key, value = line.split(':', 1)
+            fields[key.strip()] = value.strip()
+    for key, _, _ in FLAGS:
+        value = fields.setdefault(key, 'na')
+        assert value in FLAG_VALUES, f'{path}: {key}: {value}'
+    level = idea_level(fields)
+    if 'level' in fields and fields['level'] != str(level):
+        print(f'внимание: {path.name}: в файле уровень {fields["level"]}, по флагам {level} — берём по флагам')
+    fields.update(level=level, body=m.group(2).strip(), raw=raw, id=fields.get('id') or path.stem)
+    return fields
+
+
+def load_ideas():
+    ideas, calibration = [], []
+    if IDEAS_DIR.exists():
+        for path in sorted(IDEAS_DIR.glob('*.md')):
+            if path.name != 'README.md':
+                ideas.append(read_idea(path))
+        for path in sorted((IDEAS_DIR / 'calibration').glob('*.md')):
+            calibration.append(read_idea(path))
+    ideas.sort(key=lambda i: i.get('date', ''), reverse=True)   # свежие выше…
+    ideas.sort(key=lambda i: -i['level'])                       # …внутри своего уровня
+    calibration.sort(key=lambda i: i['level'])
+    return ideas, calibration
+
+
+IDEAS, CALIBRATION = load_ideas()
+
+
+def sign(level):
+    return '−' + str(-level) if level < 0 else '+' + str(level) if level > 0 else '0'
+
+
+def field(item, key, lang):
+    """Поле на языке страницы: у калибровки есть title_en, summary_en и т. п."""
+    return item.get(f'{key}_{lang}') or item.get(key, '')
+
+
+def inline(text):
+    e = html.escape(text, quote=False)
+    e = re.sub(r'\*\*(.+?)\*\*', r'<b>\1</b>', e)
+    e = re.sub(r'`([^`]+)`', r'<code>\1</code>', e)
+    return re.sub(r'\[([^\]]+)\]\((https?://[^)\s]+)\)',
+                  lambda m: f'<a href="{html.escape(m.group(2))}" target="_blank" rel="nofollow noopener">{m.group(1)}</a>', e)
+
+
+def markdown(text):
+    """Маленький и безопасный markdown для разбора: заголовки, списки, абзацы. Всё экранируется."""
+    out, para, items = [], [], []
+
+    def flush():
+        if para:
+            out.append('<p>' + inline(' '.join(para)) + '</p>')
+            para.clear()
+        if items:
+            out.append('<ul>' + ''.join(f'<li>{inline(i)}</li>' for i in items) + '</ul>')
+            items.clear()
+
+    for line in text.splitlines():
+        line = line.rstrip()
+        if not line.strip():
+            flush()
+        elif line.startswith('#'):
+            flush()
+            out.append('<h4>' + inline(line.lstrip('#').strip()) + '</h4>')
+        elif re.match(r'\s*[-*] ', line):
+            if para:
+                flush()
+            items.append(re.sub(r'^\s*[-*] ', '', line))
+        else:
+            if items:
+                flush()
+            para.append(line.strip())
+    flush()
+    return '\n'.join(out)
+
+
+def flags_html(item, lang):
+    i = 0 if lang == 'ru' else 1
+    chips = []
+    for key, ru, en in FLAGS:
+        value = item.get(key, 'na')
+        name = ru if lang == 'ru' else en
+        chips.append(f'<li class="flag flag--{value}" title="{html.escape(FLAG_VALUES[value][i])}">'
+                     f'<i aria-hidden="true"></i>{name}<span class="sr">: {FLAG_VALUES[value][i]}</span></li>')
+    label = IDEA_TEXT[lang]['flags']
+    return f'<ul class="flags" aria-label="{label}">' + ''.join(chips) + '</ul>'
+
+
+def level_badge(level, lang):
+    name = LEVELS[level][0 if lang == 'ru' else 1]
+    return f'<p class="lvl" data-level="{level}"><b>{sign(level)}</b><span>{html.escape(name)}</span></p>'
+
+
+def scale_html(lang):
+    i = 0 if lang == 'ru' else 1
+    tx = IDEA_TEXT[lang]
+    rows = []
+    for level in range(-3, 4):
+        marks = ''.join(f'<li><a href="#cal-{c["id"]}">{html.escape(field(c, "title", lang))}</a></li>'
+                        for c in CALIBRATION if c['level'] == level)
+        count = sum(1 for idea in IDEAS if idea['level'] == level)
+        rows.append(f'<li class="scale__lvl" data-level="{level}"><span class="scale__num">{sign(level)}</span>'
+                    f'<b class="scale__name">{LEVELS[level][i]}</b><small class="scale__rule">{LEVELS[level][i + 2]}</small>'
+                    f'<ul class="scale__marks">{marks}</ul><span class="scale__count">{tx["count"].format(count)}</span></li>')
+    key = ('<ul class="flags flags--key">' + ''.join(f'<li class="flag flag--{v}"><i aria-hidden="true"></i>{name}</li>'
+                                                     for v, name in tx['key']) + '</ul>')
+    cards = []
+    for c in sorted(CALIBRATION, key=lambda c: -c['level']):
+        src = c.get('source', '')
+        source = f' <a href="{html.escape(src)}" target="_blank" rel="noopener">{tx["source"]}</a>' if src.startswith('http') else ''
+        cards.append(f'<article class="calib__card" id="cal-{c["id"]}">{level_badge(c["level"], lang)}'
+                     f'<h4>{html.escape(field(c, "title", lang))}</h4>'
+                     f'<p>{html.escape(field(c, "summary", lang))}</p>{flags_html(c, lang)}'
+                     f'<p>{html.escape(field(c, "verdict", lang))}</p>'
+                     f'<p class="calib__outcome"><b>{tx["outcome"]}:</b> {html.escape(field(c, "outcome", lang))}{source}</p></article>')
+    return (f'<div class="ideas-scale"><ol class="scale">{"".join(rows)}</ol>'
+            f'<div class="calib"><h3>{tx["calib"]}</h3><p class="note">{tx["calib_lead"]}</p>{key}'
+            f'<div class="calib__grid">{"".join(cards)}</div></div></div>')
+
+
+def list_html(lang):
+    tx = IDEA_TEXT[lang]
+    if not IDEAS:
+        return (f'<div class="ideas-list"><p class="ideas-empty">{tx["empty"]} '
+                f'<a href="#idea-prompt">{tx["empty_link"]}</a></p></div>')
+    cards = []
+    for idea in IDEAS:
+        iid = 'idea-' + idea['id']
+        body = idea['body']
+        start = body.find('<!-- KBO-IDEA')
+        review, original = (body[:start], body[start:]) if start >= 0 else (body, '')
+        meta = ' · '.join(html.escape(x) for x in (idea.get('author') or tx['anon'], idea.get('date', ''),
+                                                    idea.get('lang', '').upper()) if x)
+        improve = [x.strip() for x in idea.get('improve', '').split('|') if x.strip()]
+        improve_html = (f'<div class="idea__improve"><b>{tx["improve"]}</b><ul>'
+                        + ''.join(f'<li>{html.escape(x)}</li>' for x in improve) + '</ul></div>') if improve else ''
+        pattern = (f'<p class="idea__pattern"><b>{tx["pattern"]}:</b> {html.escape(idea["pattern"])}</p>'
+                   if idea.get('pattern') else '')
+        original_html = f'<pre class="idea__raw">{html.escape(original)}</pre>' if original else ''
+        cards.append(
+            f'<article class="idea" id="{iid}" data-level="{idea["level"]}" lang="{html.escape(idea.get("lang", ""))}">'
+            f'{level_badge(idea["level"], lang)}'
+            f'<div class="idea__body"><h3>{html.escape(idea.get("title", ""))}</h3><p class="idea__meta">{meta}</p>'
+            f'<p class="idea__summary">{html.escape(idea.get("summary", ""))}</p>{flags_html(idea, lang)}'
+            f'<p class="idea__verdict">{html.escape(idea.get("verdict", ""))}</p>{pattern}{improve_html}'
+            f'<details><summary>{tx["review"]}</summary><div class="idea__review">{markdown(review)}</div>{original_html}</details>'
+            f'<div class="idea__actions"><a class="btn btn--ghost" href="/ideas/files/{idea["id"]}.md" download>{tx["download"]}</a>'
+            f'<button type="button" class="btn btn--ghost" data-copy-link="{iid}"><span data-label>{tx["copy"]}</span></button></div>'
+            f'</div></article>')
+    return '<div class="ideas-list">' + ''.join(cards) + '</div>'
+
+
+def fill_ideas(doc, lang):
+    """Вписывает в страницу «Идеи» шкалу, рейтинг и промпт на языке страницы."""
+    prompt = (SRC / 'assets' / 'ideas' / f'prompt-{lang}.md').read_text(encoding='utf-8').strip()
+    doc, n = re.subn(r'<!-- ideas:prompt -->', lambda m: html.escape(prompt, quote=False), doc, count=1)
+    assert n == 1
+    doc, n = re.subn(r'<div class="ideas-scale" data-ideas-scale>.*?</div>', lambda m: scale_html(lang), doc, count=1, flags=re.S)
+    assert n == 1
+    doc, n = re.subn(r'<div class="ideas-list" data-ideas-list>.*?</div>', lambda m: list_html(lang), doc, count=1, flags=re.S)
+    assert n == 1
+    return doc
 
 
 # ── служебные файлы ──────────────────────────────────
@@ -334,7 +575,11 @@ not the maximum. The site is in English (default) and Russian.
 - [Love]({SITE}/love/): the book “The Flow of Love: An Owner's Manual”, free PDF, open for comments
 - [Time]({SITE}/time/): a time machine on open data: which era people live in, from the Middle Ages to AI,
   and what lies ahead (6G, AGI, robots, basic income)
-- Russian: [Главная]({SITE}/ru/), [Деньги]({SITE}/ru/money/), [Любовь]({SITE}/ru/love/), [Время]({SITE}/ru/time/)
+- [Ideas]({SITE}/ideas/): an open registry of ideas for a better world, each rated on the violence–love scale
+  from −3 to +3; ideas are submitted after an interview with the visitor's own AI using the site's prompt
+  ([prompt]({SITE}/assets/ideas/prompt-en.md)); idea files: {SITE}/ideas/files/
+- Russian: [Главная]({SITE}/ru/), [Деньги]({SITE}/ru/money/), [Любовь]({SITE}/ru/love/), [Время]({SITE}/ru/time/),
+  [Идеи]({SITE}/ru/ideas/)
 
 The Money, Love and Time pages share a world map with three tabs: love (freedom, V-Dem civil liberties index),
 money (daily income of the poorest 10%, World Bank) and time (the era people live in). Data:
@@ -367,7 +612,7 @@ def main():
             path.write_text(render(source, lang, page), encoding='utf-8')
     (OUT / '404.html').write_text(render(source, 'en', '404'), encoding='utf-8')
 
-    for name in ('styles.css', 'app.js', 'planet.js', 'atlas.js'):
+    for name in ('styles.css', 'app.js', 'planet.js', 'atlas.js', 'ideas.js'):
         shutil.copy2(SRC / name, OUT / name)
     shutil.copytree(SRC / 'vendor', OUT / 'vendor')
     shutil.copytree(SRC / 'assets', OUT / 'assets')
@@ -375,6 +620,9 @@ def main():
     (OUT / 'files').mkdir()
     for file, published in BOOKS.values():
         shutil.copy2(ROOT / 'materials' / file, OUT / published.lstrip('/'))
+    (OUT / 'ideas' / 'files').mkdir(parents=True)
+    for idea in IDEAS:
+        (OUT / 'ideas' / 'files' / f'{idea["id"]}.md').write_text(idea['raw'], encoding='utf-8')
 
     (OUT / 'CNAME').write_text(DOMAIN + '\n')
     (OUT / 'robots.txt').write_text(f'User-agent: *\nAllow: /\n\nSitemap: {SITE}/sitemap.xml\n')

@@ -1,17 +1,18 @@
-// Сайт Kaizen Blue Ocean: главная и три страницы — «Деньги», «Любовь» и «Время».
+// Сайт Kaizen Blue Ocean: главная и четыре страницы — «Деньги», «Любовь», «Время» и «Идеи».
 //
 // Один и тот же код работает в двух режимах:
 // — исходник (src/index.html, он же прототип): все страницы и оба языка
-//   в одном файле, страницы переключаются якорями #money, #love и #time,
+//   в одном файле, страницы переключаются якорями #money, #love, #time и #ideas,
 //   язык — кнопками;
 // — собранный сайт (tools/build_site.py): у каждой страницы и языка свой
 //   адрес, в файле только одна страница и один язык.
 // На главной — планета, две кнопки («Любовь» и «Деньги»), шкала здоровья
 // планеты и объяснение, что изменилось. Кнопки меняют только планету
 // и никуда не уводят; подсказка «Нажмите» стоит над следующей кнопкой.
-// Карту мира с вкладками «Любовь», «Деньги», «Время» рисует atlas.js.
+// Карту мира с вкладками «Любовь», «Деньги», «Время» рисует atlas.js,
+// промпт, проверку и отправку идей — ideas.js.
 
-const PAGES = ['money', 'love', 'time'];
+const PAGES = ['money', 'love', 'time', 'ideas'];
 
 // Что происходит на планете в каждом из четырёх состояний.
 // Код: первая цифра — «Любовь» (Kaizen), вторая — «Деньги» (Blue Ocean).
@@ -77,8 +78,8 @@ const HEALTH = {
 };
 
 const TITLES = {
-  ru: { home: 'Kaizen Blue Ocean · Миру не хватает любви и денег', money: 'Деньги · Kaizen Blue Ocean', love: 'Любовь · Kaizen Blue Ocean', time: 'Время · Kaizen Blue Ocean' },
-  en: { home: 'Kaizen Blue Ocean · The world lacks love and money', money: 'Money · Kaizen Blue Ocean', love: 'Love · Kaizen Blue Ocean', time: 'Time · Kaizen Blue Ocean' },
+  ru: { home: 'Kaizen Blue Ocean · Миру не хватает любви и денег', money: 'Деньги · Kaizen Blue Ocean', love: 'Любовь · Kaizen Blue Ocean', time: 'Время · Kaizen Blue Ocean', ideas: 'Идеи · Kaizen Blue Ocean' },
+  en: { home: 'Kaizen Blue Ocean · The world lacks love and money', money: 'Money · Kaizen Blue Ocean', love: 'Love · Kaizen Blue Ocean', time: 'Time · Kaizen Blue Ocean', ideas: 'Ideas · Kaizen Blue Ocean' },
 };
 
 // Ореол атмосферы чуть шире диска: он не должен упираться в текст и в края экрана.
@@ -269,8 +270,16 @@ function hashId() {
   try { return decodeURIComponent(location.hash.slice(1)); } catch (e) { return ''; }
 }
 
+// Якорь внутри страницы (например, #idea-list) открывает ту страницу, где он стоит.
+function pageOf(id) {
+  if (PAGES.includes(id)) return id;
+  const el = id && id !== 'top' ? document.getElementById(id) : null;
+  const holder = el && el.closest('[data-view]');
+  return holder ? holder.dataset.view : 'home';
+}
+
 function go(id, { first = false } = {}) {
-  const next = PAGES.includes(id) ? id : 'home';
+  const next = pageOf(id);
   const changed = next !== view;
   if (view === 'home' && changed) homeY = window.scrollY;
   view = next;
@@ -284,7 +293,7 @@ function go(id, { first = false } = {}) {
   run();
   if (first) return;
 
-  const target = view === 'home' && id && id !== 'top' ? document.getElementById(id) : null;
+  const target = id && id !== 'top' && !PAGES.includes(id) ? document.getElementById(id) : null;
   const behavior = changed || reduced ? 'auto' : 'smooth';
   if (target) target.scrollIntoView({ behavior });
   else if (changed && view === 'home' && !id) window.scrollTo(0, homeY);
@@ -336,3 +345,8 @@ if (hero) {
   initPlanet();
 }
 initAtlas();
+
+// Раздел «Идеи»: модуль нужен только там.
+if ($('[data-ideas-form]') && (routed || view === 'ideas')) {
+  import('./ideas.js').then((mod) => mod.init()).catch((e) => console.error('Раздел идей не загрузился', e));
+}

@@ -1,7 +1,7 @@
 // Картинки для превью ссылок (1200×630) и иконки сайта.
 // Рисует их браузер: те же шрифты, цвета и та же планета, что на сайте.
 //
-// Запуск:  node tools/make_og.cjs [home money love time]
+// Запуск:  node tools/make_og.cjs [home money love time ideas]
 // Без аргументов рисует все превью и иконки; с аргументами — только эти превью.
 // Нужен Playwright с Chromium (npm i -g playwright). Результат — в src/assets/og/
 // и src/assets/icons/; его кладём в репозиторий, сборке сайта Node не нужен.
@@ -38,7 +38,26 @@ const TEXT = {
     en: { label: 'Time · time machine', title: 'What time do you live in?', sub: 'From the Middle Ages to AI, and on to 6G, AGI, robots and basic income.' },
     ru: { label: 'Время · машина времени', title: 'В каком времени вы живёте?', sub: 'От Средних веков до ИИ — и дальше: 6G, AGI, роботы, базовый доход.' },
   },
+  ideas: {
+    en: { label: 'Ideas · violence–love scale', title: 'Ideas for a world without violence', sub: 'Every idea rated on one open scale: does it reduce violence or shift it onto others?' },
+    ru: { label: 'Идеи · шкала «насилие — любовь»', title: 'Идеи для мира без насилия', sub: 'Каждая идея — на одной открытой шкале: снижает она насилие или переносит на других?' },
+  },
 };
+
+// Шкала «насилие — любовь» — как на странице «Идеи»: от −3 до +3.
+const SCALE_SVG = (() => {
+  const colors = ['#c8372a', '#c4502b', '#a86a0c', '#5b6b7e', '#4f8a3a', '#1e8449', '#1e8449'];
+  const soft = ['#fbe9e6', '#fbece4', '#fbf2e1', '#eef1f4', '#eef6e9', '#e6f4ec', '#f6f1df'];
+  const labels = ['−3', '−2', '−1', '0', '+1', '+2', '+3'];
+  let out = '<svg class="scale" viewBox="0 0 520 300">';
+  labels.forEach((l, i) => {
+    const x = i * 74, h = 90 + i * 30, y = 300 - h;
+    out += `<rect x="${x}" y="${y}" width="66" height="${h}" rx="10" fill="${soft[i]}"/>`;
+    out += `<rect x="${x}" y="${y}" width="66" height="6" rx="3" fill="${i === 6 ? '#e0a635' : colors[i]}"/>`;
+    out += `<text x="${x + 33}" y="${y + 46}" text-anchor="middle" font-family="Unbounded" font-weight="700" font-size="26" fill="${colors[i]}">${l}</text>`;
+  });
+  return out + '</svg>';
+})();
 
 // Цвета эпох — как в src/atlas.js: эпоха нижних 10% жителей страны.
 const ERA_COLORS = ['#6f4a2f', '#b8743a', '#e2b55f', '#8cc7b8', '#3a93d0', '#4c3fc4'];
@@ -66,12 +85,13 @@ const ART = {
 
 function page(kind, lang) {
   const t = TEXT[kind][lang];
-  const dot = { love: 'linear-gradient(90deg,#1e8449,#e0a635)', time: 'linear-gradient(90deg,#6f4a2f,#e2b55f 40%,#3a93d0 70%,#4c3fc4)' }[kind] || '#0b78bf';
+  const dot = { ideas: 'linear-gradient(90deg,#c8372a,#e0a635 50%,#1e8449)', love: 'linear-gradient(90deg,#1e8449,#e0a635)', time: 'linear-gradient(90deg,#6f4a2f,#e2b55f 40%,#3a93d0 70%,#4c3fc4)' }[kind] || '#0b78bf';
   let art = '';
   if (kind === 'home') art = '<canvas id="planet" width="1200" height="630"></canvas>';
   if (kind === 'money') art = `<img class="shot" src="${ART.money[lang]}" alt="">`;
   if (kind === 'love') art = `<img class="book" src="${ART.love[lang]}" alt="">`;
   if (kind === 'time') art = '<svg id="map" class="map"></svg>';
+  if (kind === 'ideas') art = SCALE_SVG;
   return `<!doctype html><html lang="${lang}"><head><meta charset="utf-8">
 <link rel="stylesheet" href="/assets/fonts/fonts.css">
 <style>
@@ -95,6 +115,7 @@ function page(kind, lang) {
           object-fit: cover; object-position: 50% 45%; border-radius: 18px;
           box-shadow: 0 2px 4px rgba(14,26,43,.08), 0 24px 48px -16px rgba(14,26,43,.4); }
   .map { position: absolute; right: 28px; top: 50%; transform: translateY(-50%); width: 640px; height: auto; }
+  .scale { position: absolute; right: 64px; top: 50%; transform: translateY(-50%); width: 500px; height: auto; }
 </style></head><body>
 ${art}
 <div class="copy">
