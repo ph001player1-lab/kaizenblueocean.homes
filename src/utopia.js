@@ -1,4 +1,5 @@
 // Страница «Утопия»: голос «хочу», счётчик и список тех, кто уже хочет.
+// На главной — только строка счётчика в рекламном блоке.
 //
 // Голоса принимает скрипт в Google Таблице автора (tools/utopia-vote/Code.gs):
 // POST — новый голос, GET — счётчик, страны и имена тех, кто разрешил их
@@ -6,10 +7,11 @@
 // закрыто: форма предлагает написать автору в Telegram.
 
 // Адрес веб-приложения Apps Script: https://script.google.com/macros/s/<id>/exec
-const ENDPOINT = '';
+const ENDPOINT = 'https://script.google.com/macros/s/AKfycbw3prdqhFkwQ0mgXP2lLKBcCVZZi8ldUKVry2OENw6DZ6exK_TPCIzxFZ-R8O1HrZfl/exec';
 const TELEGRAM = 'https://t.me/Nickbv';
 const NAME_RE = /^\p{L}[\p{L}\p{M} .'’-]{1,39}$/u;
 const SHOWN_COUNTRIES = 12;
+const TEASER_FROM = 10;   // пока голосов меньше, на главной вместо числа — «будьте среди первых»
 
 const T = {
   ru: {
@@ -29,6 +31,8 @@ const T = {
     again: 'С этого устройства уже голосовали. Если голосует другой человек, отправьте форму ещё раз.',
     empty: 'Пока никого. Будьте первым.',
     hidden: (n) => `Без имени: ${n}`,
+    teaser: (n, c) => `Уже хотят: ${n}${c ? ` · стран: ${c}` : ''}.`,
+    first: 'Будьте среди первых.',
   },
   en: {
     sub: (kids, countries) => [kids ? `plus ${kids} children` : '', countries ? `countries: ${countries}` : ''].filter(Boolean).join(' · ') || 'Be the first.',
@@ -47,6 +51,8 @@ const T = {
     again: 'Someone has already voted from this device. If this is another person, send the form again.',
     empty: 'Nobody yet. Be the first.',
     hidden: (n) => `Without a name: ${n}`,
+    teaser: (n, c) => `Already want to: ${n}${c ? ` · countries: ${c}` : ''}.`,
+    first: 'Be among the first.',
   },
 };
 
@@ -57,15 +63,16 @@ const store = {
 
 export function init({ lang: getLang = () => document.documentElement.lang } = {}) {
   const form = document.querySelector('[data-utopia-vote]');
-  if (!form) return null;
+  const teaser = document.querySelector('[data-utopia-teaser]');
+  if (!form && !teaser) return null;
   const $ = (s) => document.querySelector(s);
   const count = $('[data-utopia-count]');
   const sub = $('[data-utopia-sub]');
   const list = $('[data-utopia-list]');
   const countries = $('[data-utopia-countries]');
-  const status = form.querySelector('[data-utopia-status]');
-  const select = form.querySelector('select[name="country"]');
-  const submit = form.querySelector('button[type="submit"]');
+  const status = form && form.querySelector('[data-utopia-status]');
+  const select = form && form.querySelector('select[name="country"]');
+  const submit = form && form.querySelector('button[type="submit"]');
   const opened = Date.now();
   let stats = null;
 
@@ -105,7 +112,15 @@ export function init({ lang: getLang = () => document.documentElement.lang } = {
     }
   }
 
+  function renderTeaser() {
+    if (!teaser || !stats) return;
+    const n = stats.count || 0;
+    teaser.textContent = n >= TEASER_FROM ? t().teaser(fmt(n), Object.keys(stats.countries || {}).length) : t().first;
+  }
+
   function render() {
+    renderTeaser();
+    if (!count) return;
     if (!stats) {
       sub.textContent = t().soon;
       return;
@@ -157,7 +172,7 @@ export function init({ lang: getLang = () => document.documentElement.lang } = {
     say(message, 'error');
   }
 
-  form.addEventListener('submit', async (e) => {
+  if (form) form.addEventListener('submit', async (e) => {
     e.preventDefault();
     form.querySelectorAll('[aria-invalid]').forEach((f) => f.removeAttribute('aria-invalid'));
     const f = form.elements;
@@ -192,7 +207,7 @@ export function init({ lang: getLang = () => document.documentElement.lang } = {
     load();
   });
 
-  if (store.get('kbo.utopia.voted')) say(t().again, 'ok');
+  if (form && store.get('kbo.utopia.voted')) say(t().again, 'ok');
   fillCountries().then(render);
   load();
   return {

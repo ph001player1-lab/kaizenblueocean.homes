@@ -225,6 +225,17 @@ def lang_switch(lang, page):
     return f'<div class="lang" role="group" aria-label="{name}">\n    ' + '\n    '.join(items) + '\n  </div>'
 
 
+def anchors(source):
+    """Якорь → страница, где он стоит. Ссылка #vote с главной ведёт на /utopia/#vote."""
+    found = {}
+    main = source.split('<main>', 1)[1].split('</main>', 1)[0]
+    parts = re.split(r'data-view="(\w+)"', main)
+    for view, chunk in zip(parts[1::2], parts[2::2]):
+        for name in re.findall(r'\sid="([\w-]+)"', chunk):
+            found.setdefault(name, view)
+    return found
+
+
 def render(source, lang, page):
     """Одна страница на одном языке. page='404' — страница «не найдено»."""
     doc = source
@@ -239,6 +250,7 @@ def render(source, lang, page):
     tokens = drop(tokens, lambda t: attr(t, 'data-l') in (None, lang))
     tokens = drop(tokens, lambda t: attr(t, 'data-view') in (None, page))
     prefix = LANGS[lang]
+    elsewhere = anchors(source)
     out = []
     for tok in tokens:
         if is_start(tok):
@@ -260,6 +272,8 @@ def render(source, lang, page):
                     tok = set_attr(tok, 'href', prefix)
                 elif href[1:] in PAGES and href.startswith('#'):
                     tok = set_attr(tok, 'href', url(lang, href[1:]))
+                elif href.startswith('#') and elsewhere.get(href[1:], page) != page:
+                    tok = set_attr(tok, 'href', url(lang, elsewhere[href[1:]]) + href)
                 elif html.unescape(href) in BOOKS:
                     # Книга скачивается сразу, с понятным именем файла.
                     file = BOOKS[html.unescape(href)][1]

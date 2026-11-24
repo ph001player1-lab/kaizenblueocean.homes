@@ -348,7 +348,7 @@ if (hero) {
 }
 initAtlas();
 
-// Голосование за Утопию: модуль нужен только там.
-if ($('[data-utopia-vote]') && (routed || view === 'utopia')) {
+// Утопия: голосование на её странице и счётчик в рекламном блоке главной.
+if ($('[data-utopia-vote], [data-utopia-teaser]')) {
   import('./utopia.js').then((mod) => { utopia = mod.init({ lang: () => lang }); }).catch((e) => console.error('Голосование не загрузилось', e));
 }
